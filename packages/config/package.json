@@ -1,0 +1,48 @@
+{
+  "name": "@orchestra_nexsan/config",
+  "version": "1.0.0",
+  "description": "永乐大典配置管理工具包 - Orchestra Configuration Kit",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run clean && npm run build && npm test"
+  },
+  "keywords": [
+    "orchestra",
+    "config",
+    "configuration",
+    "dotenv",
+    "yaml"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.10.0",
+    "jest": "^30.2.0",
+    "rimraf": "^6.1.2",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.3.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}
