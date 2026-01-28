@@ -1,0 +1,18 @@
+{
+  "name": "orchestra-foundation",
+  "description": "永乐大典地基 - AI驱动的标准化开发体系",
+  "author": {
+    "name": "nexsan"
+  },
+  "homepage": "https://github.com/nexsan123/orchestra-foundation",
+  "repository": "https://github.com/nexsan123/orchestra-foundation",
+  "license": "MIT",
+  "keywords": [
+    "orchestra",
+    "永乐大典",
+    "ai-agents",
+    "multi-agent",
+    "development-framework"
+  ],
+  "skills": "./skills"
+}
