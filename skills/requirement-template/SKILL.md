@@ -5,19 +5,35 @@ description: |
   支持快速模式（2轮）和标准模式（4轮）。
   第四轮采用协作生成产出数据。
   开场白首次详细，后续简化。
-  🆕 v1.3 新增平台定位必问项。
+  🆕 v1.6 新增铁律（6条）、整合规范、调用证据要求。
   Use when (1) Plan Agent 启动, (2) 每轮校验, (3) 产出协作生成, (4) 报告生成。
 ---
 
-# 📋 凡例司·需求采集模板
+# 📋 采访使·需求采集模板
 
 > 永乐大典 (Orchestra) 体系 · Plan Agent 专用 Skill
-> 版本：v1.3
-> 更新：2026-01-24
+> 版本：v1.8
+> 更新：2026-01-31
 
 ---
 
-## 🎯 核心职责
+## 📌 目录
+
+1. [一、核心职责](#一核心职责)
+2. [二、铁律](#二铁律)
+3. [三、整合规范](#三整合规范)
+4. [四、快速模式 vs 标准模式](#四快速模式-vs-标准模式)
+5. [五、接口总览](#五接口总览)
+6. [六、调用证据要求](#六调用证据要求)
+7. [七、接口详细定义](#七接口详细定义)
+8. [八、完整流程（标准模式）](#八完整流程标准模式)
+9. [九、完整流程（快速模式）](#九完整流程快速模式)
+10. [十、错误处理](#十错误处理)
+11. [十一、版本历史](#十一版本历史)
+
+---
+
+## 一、核心职责
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -39,7 +55,110 @@ description: |
 
 ---
 
-## ⚡ 快速模式 vs 标准模式
+## 二、铁律
+
+```yaml
+# ════════════════════════════════════════════════════════════════════════════
+#  采访使铁律 · 6条
+# ════════════════════════════════════════════════════════════════════════════
+
+RT-01:
+  name: "必填字段不可跳过"
+  rule: "required_fields 中的字段必须全部采集，禁止默认值代替"
+  evidence: "validate_round 返回的 errors 数组"
+  violation: "采集不完整导致后续阶段返工"
+
+RT-02:
+  name: "用户确认必须记录"
+  rule: "每轮 user_confirmed_points 必须为 true 才能进入下一轮"
+  evidence: "史官 confirm_points() 返回的 confirmation_id"
+  violation: "用户未确认导致需求理解偏差"
+
+RT-03:
+  name: "协作生成不可跳过"
+  rule: "第四轮（OUTPUT）必须经过 generate_outputs_draft → 讨论 → validate_outputs 流程"
+  evidence: "validate_outputs 返回 all_confirmed: true"
+  violation: "产出未经用户确认导致返工"
+
+RT-04:
+  name: "质量警告必须呈现"
+  rule: "warning_words 触发时必须向用户展示警告，用户确认后方可继续"
+  evidence: "validate_round 返回的 warnings 数组 + 用户确认记录"
+  violation: "跳过警告导致需求模糊"
+
+RT-05:
+  name: "场景特定字段不可遗漏"
+  rule: "scenario_type 确定后，必须调用 get_pending_scenario_fields 并完成补问"
+  evidence: "immediate_fields 全部采集完成"
+  violation: "场景特定信息缺失导致方案不适配"
+
+RT-06:
+  name: "报告生成前必须全量校验"
+  rule: "必须调用 validate_all() 且返回 can_generate_report: true 后才能生成报告"
+  evidence: "validate_all 返回的 checklist 全部为 pass"
+  violation: "报告不完整导致 Spec Agent 无法工作"
+```
+
+---
+
+## 三、整合规范
+
+### 与史官（dialogue-archivist）整合
+
+```yaml
+史官调用时机:
+
+  # 每轮采访必须记录
+  round_recording:
+    - "用户回答 → 史官.record(type=answer)"
+    - "用户决策 → 史官.mark_decision()"
+    - "确认要点 → 史官.confirm_points()"
+    - "轮次结束 → 史官.end_round()"
+
+  # 产出协作必须记录
+  output_recording:
+    - "草案展示 → 史官.record(type=draft_presented)"
+    - "用户讨论 → 史官.record(type=discussion)"
+    - "用户确认 → 史官.record(type=confirm)"
+
+  # 修改必须记录
+  revision_recording:
+    - "用户要求修改 → 史官.record(type=revision_request)"
+    - "修改完成 → 史官.record(type=revision_complete)"
+
+证据要求:
+  session_id: "史官 init_session() 返回"
+  round_id: "史官 start_round() 返回"
+  confirmation_id: "史官 confirm_points() 返回"
+```
+
+### 与巡按御史（project-scanner）整合
+
+```yaml
+巡按御史调用时机:
+
+  # 已有项目场景
+  existing_project:
+    - "用户提供项目路径 → 巡按御史.scan_full()"
+    - "扫描完成 → 获取 scenario_suggestion"
+    - "用户确认场景 → 调用 get_pending_scenario_fields()"
+
+  # 场景判断依据
+  scenario_from_scanner:
+    iteration: "scanner 识别到现有功能 + 用户要加新功能"
+    refactor: "scanner.health_score < 60 或用户明确要重构"
+    batch_delivery: "用户需求规模大，建议分批"
+    new_project: "scanner 返回空或用户明确从零开始"
+
+证据要求:
+  scan_id: "巡按御史.scan_full() 返回"
+  scenario_suggestion: "巡按御史.get_scenario_suggestion() 返回"
+  health_score: "巡按御史.get_project_health() 返回"
+```
+
+---
+
+## 四、快速模式 vs 标准模式
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -79,12 +198,13 @@ description: |
 
 ---
 
-## 📚 接口总览
+## 五、接口总览
 
 | # | 接口名 | 用途 |
 |---|--------|------|
 | 1 | get_mode | 获取采访模式（快速/标准） |
 | 2 | get_template | 获取轮次模板 |
+| 2.5 | get_pending_scenario_fields | 场景确定后获取待追加字段 🆕 v1.5 |
 | 3 | get_opening | 获取开场白（首次详细/后续简化） |
 | 4 | validate_round | 校验单轮数据 |
 | 5 | generate_outputs_draft | 生成产出草案（协作生成第一步） |
@@ -95,7 +215,57 @@ description: |
 
 ---
 
-## 📖 接口详细定义
+## 六、调用证据要求
+
+```yaml
+# ════════════════════════════════════════════════════════════════════════════
+#  每个接口的调用证据要求（供 Test Agent / Conductor 审计用）
+# ════════════════════════════════════════════════════════════════════════════
+
+get_mode:
+  必须返回: "mode + total_rounds + rounds_config"
+  证据: "模式选择依据（complexity 评估 或 user_preference）"
+
+get_template:
+  必须返回: "required_fields + optional_fields + scenario_specific_fields"
+  证据: "当前轮次完整字段清单"
+
+get_pending_scenario_fields:
+  必须返回: "pending_fields + immediate_fields + has_immediate"
+  证据: "场景确定后需补问的字段清单"
+
+get_opening:
+  必须返回: "opening_script"
+  证据: "根据 context.type 和 is_returning_user 选择的开场白"
+
+validate_round:
+  必须返回: "valid + errors + warnings + can_proceed"
+  证据: "每个字段的校验结果 + 用户确认状态"
+
+generate_outputs_draft:
+  必须返回: "drafts（scoped_goal + stage_division + api_list + entity_list + acceptance_criteria）"
+  证据: "每项产出的 reasoning 和 questions_for_user，scoped_goal 必须包含 scope_boundary"
+
+validate_outputs:
+  必须返回: "valid + all_confirmed + cross_check_results + can_generate_report"
+  证据: "每项产出的确认状态 + 交叉检查结果"
+
+validate_all:
+  必须返回: "valid + checklist + can_generate_report"
+  证据: "完整校验清单，每项 status 为 pass/fail/warning"
+
+get_report_template:
+  必须返回: "template + required_sections + optional_sections"
+  证据: "根据 mode 选择的报告模板（标准版/快速版）"
+
+revise_round:
+  必须返回: "allowed + template + current_values + impact_warning"
+  证据: "是否允许修改 + 修改后的影响范围"
+```
+
+---
+
+## 七、接口详细定义
 
 ### 接口 1: get_mode
 
@@ -162,6 +332,8 @@ input:
   context:
     type: "first_time" | "rework" | "resume" | "revision"
     is_returning_user: boolean  # 是否老用户
+  # 🆕 v1.4 场景感知
+  scenario_type: "new_project" | "iteration" | "batch_delivery" | "refactor" | null  # 🆕
 
 output:
   round_number: number
@@ -169,6 +341,8 @@ output:
   round_purpose: string
   required_fields: array
   optional_fields: array
+  # 🆕 v1.4 场景特定字段
+  scenario_specific_fields: array | null  # 🆕 场景特定的额外问题
   closing_script: string
   confirm_points_script: string
 ```
@@ -319,18 +493,23 @@ standard_round_4:
   # 而是通过 generate_outputs_draft → 用户确认 → validate_outputs 流程
   
   collaborative_items:
+    - item: "scoped_goal"  # 🆕 v1.8 确定性目标演进
+      name: "范围版目标"
+      process: "从司礼监初版目标细化 → 讨论边界 → 用户确认"
+      source: "司礼监拟旨时的初版目标（decree_goal）"
+
     - item: "stage_division"
       name: "阶段划分"
       process: "Agent 提出草案 → 讨论 → 用户确认"
-      
+
     - item: "api_list"
       name: "API清单"
       process: "Agent 提出草案 → 逐个讨论 → 用户确认"
-      
+
     - item: "entity_list"
       name: "数据实体"
       process: "Agent 提出草案 → 逐个讨论 → 用户确认"
-      
+
     - item: "acceptance_criteria"
       name: "验收标准"
       process: "Agent 提出草案 → 逐条讨论 → 用户确认"
@@ -376,8 +555,227 @@ quick_round_1:
 quick_round_2:
   round_name: "OUTPUT"
   round_purpose: "快速确认产出数据"
-  
+
   # 同标准模式第四轮，但产出内容更简化
+```
+
+---
+
+#### 场景感知模板变体 🆕 v1.4
+
+```yaml
+scenario_specific_fields:
+
+  # ═══════════════════════════════════════════════════════════════
+  #  不同场景下，除标准问题外，还需要问的额外问题
+  # ═══════════════════════════════════════════════════════════════
+
+  new_project:
+    description: "新项目：标准流程，无特殊字段"
+    extra_fields: []
+    hints:
+      - "从零开始，无历史包袱"
+      - "可以自由选择技术栈"
+
+  iteration:
+    description: "功能迭代：需要了解现有系统情况"
+    extra_fields:
+      - field_key: "existing_features_impact"
+        field_name: "对现有功能的影响"
+        question: "新功能会影响现有哪些功能？需要修改哪些现有模块？"
+        round: 2  # 在 HOW 轮询问
+        quality_rules:
+          min_length: 10
+
+      - field_key: "backward_compatibility"
+        field_name: "向后兼容要求"
+        question: "是否需要保持与现有接口的兼容？是否有旧版本需要支持？"
+        round: 3  # 在 EDGE 轮询问
+
+      - field_key: "migration_needed"
+        field_name: "数据迁移需求"
+        question: "是否涉及数据结构变更？是否需要数据迁移？"
+        round: 3
+    hints:
+      - "需要考虑与现有功能的兼容"
+      - "可能需要修改现有代码"
+      - "注意不破坏现有功能"
+
+  batch_delivery:
+    description: "分批交付：需要了解批次划分"
+    extra_fields:
+      - field_key: "batch_strategy"
+        field_name: "批次划分策略"
+        question: |
+          此项目较大，需要分批交付。请皇上指明：
+          1. 预计分几批？
+          2. 每批的核心内容是什么？
+          3. 各批次之间的依赖关系如何？
+        round: 2  # 在 HOW 轮询问
+        quality_rules:
+          required: true
+
+      - field_key: "batch_priorities"
+        field_name: "批次优先级"
+        question: "各批次的优先级如何排序？哪批必须先完成？"
+        round: 2
+
+      - field_key: "batch_milestones"
+        field_name: "批次里程碑"
+        question: "每个批次完成的验收标准是什么？"
+        round: 4  # 在 OUTPUT 轮确认
+    hints:
+      - "大项目分批交付，降低风险"
+      - "每批次有独立的验收标准"
+      - "需要规划批次间的依赖"
+
+  refactor:
+    description: "项目重塑：需要了解重塑原因和目标"
+    extra_fields:
+      - field_key: "refactor_motivation"
+        field_name: "重塑原因"
+        question: "为什么需要重塑？现有代码有哪些痛点？"
+        round: 1  # 在 WHAT 轮询问
+        quality_rules:
+          min_length: 20
+          required: true
+
+      - field_key: "refactor_scope"
+        field_name: "重塑范围"
+        question: "重塑范围是什么？全部重写还是部分重构？"
+        round: 2
+        quality_rules:
+          valid_values: ["full_rewrite", "partial_refactor", "incremental"]
+
+      - field_key: "preserve_features"
+        field_name: "保留功能"
+        question: "哪些现有功能必须保留？哪些可以重新设计？"
+        round: 2
+
+      - field_key: "refactor_risks"
+        field_name: "重塑风险"
+        question: "重塑过程中可能有哪些风险？如何应对？"
+        round: 3
+
+      - field_key: "parallel_running"
+        field_name: "并行运行"
+        question: "重塑期间，新旧系统是否需要并行运行？"
+        round: 3
+    hints:
+      - "重塑项目风险较高，需要详细规划"
+      - "建议分批次迁移"
+      - "保留回滚能力"
+      - "巡按御史扫描结果可辅助决策"
+
+# 场景感知逻辑
+scenario_aware_logic:
+
+  # 如何获取场景特定字段
+  get_scenario_fields:
+    input: "scenario_type"
+    output: "scenario_specific_fields[scenario_type].extra_fields"
+
+  # 如何合并到标准模板
+  merge_strategy:
+    - "将场景特定字段按 round 合并到对应轮次"
+    - "场景特定字段显示在标准字段之后"
+    - "场景特定字段也需要通过 validate_round 校验"
+
+  # 如何显示场景提示
+  display_hints:
+    timing: "每轮开始时"
+    format: "💡 场景提示：{hint}"
+
+  # 🆕 v1.5 场景延迟确定处理
+  deferred_scenario:
+    description: |
+      对于已有项目，场景可能在扫描后才能确定。
+      此时 scenario_type=null，使用默认模板，待场景确定后追加字段。
+
+    when_null:
+      behavior: "使用标准模板，不加载场景特定字段"
+      hints: ["💡 场景待确定，正在使用标准采访模板"]
+      note: "第一轮（WHAT）通常不需要场景特定字段"
+
+    on_scenario_confirmed:
+      trigger: "用户确认场景后"
+      action: "调用 get_pending_scenario_fields 获取需要追加的字段"
+      timing: "通常在第一轮结束后、第二轮开始前"
+
+    追加逻辑:
+      - "检查当前轮次"
+      - "获取场景特定字段中 round >= 当前轮次 的字段"
+      - "追加到后续轮次模板中"
+```
+
+---
+
+### 接口 2.5: get_pending_scenario_fields 🆕 v1.5
+
+**用途**: 场景确定后，获取需要追加的场景特定字段
+
+```yaml
+interface: get_pending_scenario_fields
+
+input:
+  scenario_type: "new_project" | "iteration" | "batch_delivery" | "refactor"
+  current_round: number              # 当前已完成的轮次
+  mode: "quick" | "standard"
+
+output:
+  pending_fields:                    # 需要追加的字段
+    - field_key: string
+      field_name: string
+      question: string
+      target_round: number           # 应该在哪一轮询问
+      quality_rules: object
+  immediate_fields:                  # 需要立即补问的字段（round <= current_round）
+    - field_key: string
+      field_name: string
+      question: string
+  future_fields:                     # 将在后续轮次询问的字段
+    - field_key: string
+      target_round: number
+  has_immediate: boolean             # 是否有需要立即补问的字段
+  补问脚本: string | null            # 如果 has_immediate=true，提供补问话术
+
+# 使用示例
+example:
+  input:
+    scenario_type: "refactor"
+    current_round: 1                 # 刚完成第一轮
+    mode: "standard"
+
+  output:
+    pending_fields:
+      - field_key: "refactor_motivation"
+        target_round: 1              # 本应在第一轮问
+      - field_key: "refactor_scope"
+        target_round: 2
+      - field_key: "preserve_features"
+        target_round: 2
+      - field_key: "refactor_risks"
+        target_round: 3
+
+    immediate_fields:
+      - field_key: "refactor_motivation"
+        field_name: "重塑原因"
+        question: "为什么需要重塑？现有代码有哪些痛点？"
+
+    future_fields:
+      - field_key: "refactor_scope"
+        target_round: 2
+      - field_key: "preserve_features"
+        target_round: 2
+      - field_key: "refactor_risks"
+        target_round: 3
+
+    has_immediate: true
+    补问脚本: |
+      皇上，微臣确认此项目为「项目重塑」场景。
+      在继续之前，微臣需要补问一个问题：
+
+      **重塑原因**：为什么需要重塑？现有代码有哪些痛点？
 ```
 
 ---
@@ -576,21 +974,33 @@ input:
 
 output:
   drafts:
+    scoped_goal:  # 🆕 v1.8 确定性目标演进
+      data:
+        core_goal: string          # 一句话核心目标
+        scope_boundary:
+          included: array          # 明确包含的功能/模块
+          excluded: array          # 明确排除的功能/模块
+          deferred: array          # 延后实现的功能
+        success_indicators: array  # 可衡量的成功指标
+      reasoning: string            # 为什么这样定义范围
+      questions_for_user: array    # 需要用户确认的问题
+      source: "decree_goal"        # 来源：司礼监初版目标
+
     stage_division:
       data: array
       reasoning: string            # 为什么这样划分
       questions_for_user: array    # 需要用户确认的问题
-      
+
     api_list:
       data: array
       reasoning: string
       questions_for_user: array
-      
+
     entity_list:
       data: array
       reasoning: string
       questions_for_user: array
-      
+
     acceptance_criteria:
       data: array
       reasoning: string
@@ -1082,7 +1492,7 @@ output:
 
 ---
 
-## 🔄 完整流程（标准模式）
+## 八、完整流程（标准模式）
 
 ```yaml
 standard_mode_flow:
@@ -1127,7 +1537,7 @@ standard_mode_flow:
 
 ---
 
-## 🔄 完整流程（快速模式）
+## 九、完整流程（快速模式）
 
 ```yaml
 quick_mode_flow:
@@ -1148,7 +1558,7 @@ quick_mode_flow:
 
 ---
 
-## ⚠️ 错误处理
+## 十、错误处理
 
 ```yaml
 error_prompts:
@@ -1180,15 +1590,20 @@ error_prompts:
 
 ---
 
-## 📋 版本历史
+## 十一、版本历史
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
+| v1.8 | 2026-02-06 | 🆕 确定性目标演进（stage_2）：collaborative_items 新增 scoped_goal（范围版目标）、generate_outputs_draft 新增 scoped_goal 草案生成 |
+| v1.7 | 2026-01-31 | 🆕 正名"采访使"（原凡例司），符合明朝官职体系 |
+| v1.6 | 2026-01-31 | 🆕 新增铁律（RT-01~RT-06，6条）、史官/巡按御史整合规范、9个接口调用证据要求、修正引用名称 |
+| v1.5 | 2026-01-30 | 🆕 场景延迟确定：(1) scenario_type 支持 null；(2) 新增 deferred_scenario 处理逻辑；(3) 新增接口 get_pending_scenario_fields（场景确定后追加字段）|
+| v1.4 | 2026-01-30 | 🆕 与 Plan Agent v2.6 对齐：get_template 添加 scenario_type 参数、新增场景感知模板变体（4种场景特定字段）、场景合并逻辑 |
 | v1.3 | 2026-01-24 | 🆕 新增平台定位必问项（platform_type）、Plan Report 平台章节 |
-| v1.2 | 2024-01-20 | 新增已有项目开场白（4种场景）、Plan Report 完整模板 |
-| v1.1 | 2024-01-18 | 增加快速模式模板、协作生成草案接口 |
-| v1.0 | 2024-01-15 | 初始版本：9个接口、标准模式模板 |
+| v1.2 | 2026-01-20 | 新增已有项目开场白（4种场景）、Plan Report 完整模板 |
+| v1.1 | 2026-01-18 | 增加快速模式模板、协作生成草案接口 |
+| v1.0 | 2026-01-15 | 初始版本：9个接口、标准模式模板 |
 
 ---
 
-**📋 凡例司·需求采集模板 · 完**
+**📋 采访使·需求采集模板 · 完**

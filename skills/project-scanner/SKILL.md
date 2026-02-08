@@ -1,22 +1,42 @@
 ---
 name: project-scanner
 description: |
-  项目扫描器（钦天监）- 真实扫描、如实禀报。
+  项目扫描器（巡按御史）- 代天子巡查，如实禀报。
   深度扫描：代码分析 + 功能清单 + 依赖关系 + 潜在问题。
   全部 Agent 可调用，与史官（Skill 2）对接存档。
   ⚠️ 强制规则：所有 Agent 的项目扫描必须且只能通过本 Skill 进行。
-  Use when (1) 已有项目需求采集, (2) 代码审查, (3) 重构评估, (4) 接手项目, (5) 任意 Agent 需要了解项目现状。
+  Use when (1) 已有项目需求采集, (2) 代码审查, (3) 重构评估, (4) 接手项目, (5) 任意 Agent 需要了解项目现状, (6) Conductor Agent 协调时获取项目状态。
 ---
 
-# 📂 项目扫描器（钦天监）
+# 📂 项目扫描器（巡按御史）
 
 > Orchestra 体系 · 全 Agent 通用 Skill
-> 版本：v1.4
+> 版本：v1.9
+> 🆕 v1.9：添加被 Spec Agent 核心 Skills 调用说明
 > ⚠️ **唯一扫描入口** - 所有 Agent 必须通过此 Skill 进行项目扫描
 
 ---
 
-## 🔴 强制架构规则
+## 📌 目录
+
+1. [一、强制架构规则](#一强制架构规则)
+2. [二、核心定位](#二核心定位)
+3. [三、真实性保障机制（巡按御史铁律）](#三真实性保障机制巡按御史铁律)
+4. [四、接口总览](#四接口总览)
+5. [五、接口详细定义](#五接口详细定义)
+6. [六、与史官（Skill 2）对接](#六与史官skill-2对接)
+7. [七、扫描报告模板](#七扫描报告模板)
+8. [八、调用流程示例](#八调用流程示例)
+9. [九、错误处理](#九错误处理)
+10. [十、存档目录结构](#十存档目录结构)
+11. [十一、安全说明](#十一安全说明)
+12. [十二、置信度评分机制](#十二置信度评分机制)
+13. [十三、被 Spec Agent 核心 Skills 调用说明](#十三被-spec-agent-核心-skills-调用说明)
+14. [十四、版本历史](#十四版本历史)
+
+---
+
+## 一、强制架构规则
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -24,18 +44,22 @@ description: |
 │  ⚠️ 【强制规则】唯一扫描入口                                                │
 │  ═══════════════════════════════════════════════════════════════════════   │
 │                                                                             │
-│  所有 Agent（Plan / Spec / Code / Review）如需扫描项目，                   │
-│  必须且只能通过「钦天监」（本 Skill）进行。                                 │
+│  所有 Agent（Plan / Spec / Code / Test / Review / Conductor）如需扫描项目，│
+│  必须且只能通过「巡按御史」（本 Skill）进行。                               │
 │                                                                             │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
 │  │                                                                     │   │
-│  │   Plan Agent ──┐                                                    │   │
-│  │                │                                                    │   │
-│  │   Spec Agent ──┼──→ 📂 钦天监（Skill 3）──→ 真实扫描结果            │   │
-│  │                │         唯一入口                                   │   │
-│  │   Code Agent ──┤                                                    │   │
-│  │                │                                                    │   │
-│  │   Review Agent─┘                                                    │   │
+│  │   Plan Agent ────┐                                                  │   │
+│  │                  │                                                  │   │
+│  │   Spec Agent ────┤                                                  │   │
+│  │                  │                                                  │   │
+│  │   Code Agent ────┼──→ 📂 巡按御史（Skill 3）──→ 真实扫描结果        │   │
+│  │                  │         唯一入口                                 │   │
+│  │   Test Agent ────┤                                                  │   │
+│  │                  │                                                  │   │
+│  │   Review Agent ──┤                                                  │   │
+│  │                  │                                                  │   │
+│  │   Conductor Agent┘                                                  │   │
 │  │                                                                     │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
@@ -46,14 +70,14 @@ description: |
 │  4. 所有扫描结果可追溯、可验证                                             │
 │                                                                             │
 │  【禁止行为】                                                               │
-│  ❌ Agent 不可绕过钦天监自行"扫描"项目                                     │
+│  ❌ Agent 不可绕过巡按御史自行"扫描"项目                                   │
 │  ❌ Agent 不可凭记忆或推测描述项目现状                                     │
-│  ❌ Agent 不可修改/美化钦天监的扫描结果                                    │
-│  ❌ Agent 不可隐瞒钦天监发现的问题                                         │
+│  ❌ Agent 不可修改/美化巡按御史的扫描结果                                  │
+│  ❌ Agent 不可隐瞒巡按御史发现的问题                                       │
 │                                                                             │
 │  【必须行为】                                                               │
-│  ✅ 需要了解项目时，必须先调用钦天监扫描                                   │
-│  ✅ 必须如实呈现钦天监的扫描结果                                           │
+│  ✅ 需要了解项目时，必须先调用巡按御史扫描                                 │
+│  ✅ 必须如实呈现巡按御史的扫描结果                                         │
 │  ✅ 必须保留扫描证据来源                                                   │
 │  ✅ 发现问题必须告知用户                                                   │
 │                                                                             │
@@ -62,18 +86,18 @@ description: |
 
 ---
 
-## 🎯 核心定位
+## 二、核心定位
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  📂 项目扫描器 = 钦天监                                         │
+│  📂 项目扫描器 = 巡按御史                                       │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  【角色】钦天监 · 观天象 · 察实情 · 报真相                     │
+│  【角色】巡按御史 · 代天子巡查 · 察实情 · 报真相               │
 │                                                                 │
 │  ┌─────────────────────────────────────────────────────────┐   │
 │  │                                                         │   │
-│  │  「有一说一，如实禀报，不造假，不臆测，不美化，不遗漏」│   │
+│  │  「代天子巡查，有一说一，不畏权贵，不美化，不隐瞒」    │   │
 │  │                                                         │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                                                                 │
@@ -83,9 +107,10 @@ description: |
 │  3. ⚠️ 问题发现 - 潜在风险、技术债务、安全隐患                 │
 │  4. 📊 真实报告 - 只报告扫描到的，不凭空推测                   │
 │  5. 📁 存档对接 - 扫描结果交史官存档                           │
+│  6. 🏥 健康诊断 - 为 Conductor Agent 提供项目整体健康度        │
 │                                                                 │
 │  【服务对象】                                                   │
-│  全部 Agent：Plan / Spec / Code / Review                       │
+│  全部 Agent：Plan / Spec / Code / Test / Review / Conductor    │
 │                                                                 │
 │  【禁止行为】                                                   │
 │  ❌ 不可编造未扫描到的功能                                     │
@@ -98,12 +123,12 @@ description: |
 
 ---
 
-## 🔐 真实性保障机制（钦天监铁律）
+## 三、真实性保障机制（巡按御史铁律）
 
 ```yaml
 project_scanner_laws:
 
-  # ========== 钦天监铁律（PS-01 ~ PS-04）==========
+  # ========== 巡按御史铁律（PS-01 ~ PS-04）==========
   
   PS-01:
     name: "扫描到才报告"
@@ -177,7 +202,7 @@ project_scanner_laws:
   # ========== 调用证据要求 ==========
 
   调用证据要求:
-    description: "调用钦天监接口时必须返回证据"
+    description: "调用巡按御史接口时必须返回证据"
 
     scan_project:
       必须返回: "scan_id"
@@ -199,29 +224,74 @@ project_scanner_laws:
     compare_scan:
       必须返回: "diff 对象"
       证据: "两次扫描的对比详情"
+
+    # 🆕 v1.8 补充完整的证据要求
+    scan_structure:
+      必须返回: "tree + summary"
+      证据: "目录树结构 + 文件统计"
+
+    scan_tech_stack:
+      必须返回: "languages + frameworks"
+      证据: "每项技术栈的 evidence 字段（文件路径+行号）"
+
+    scan_dependencies:
+      必须返回: "dependencies 对象"
+      证据: "package_manager + 依赖列表 + source_file"
+
+    scan_features:
+      必须返回: "features 对象"
+      证据: "每个功能的 evidence 数组（type + file + line + code_snippet）"
+
+    scan_file:
+      必须返回: "file_info + analysis"
+      证据: "文件元信息 + 函数/类列表"
+
+    get_scan_history:
+      必须返回: "scans 数组"
+      证据: "每次扫描的 scan_id + timestamp + summary"
+
+    scan_test_coverage:
+      必须返回: "coverage + test_quality"
+      证据: "覆盖率数值 + 低覆盖文件列表 + 未覆盖文件列表"
+
+    verify_spec_compliance:
+      必须返回: "signature_compliance + type_compliance + summary"
+      证据: "每个不一致项的 spec_signature + code_signature + file + line"
+
+    scan_module:
+      必须返回: "module_info + health_score"
+      证据: "模块结构 + 依赖分析 + 健康度评分"
+
+    get_project_health:
+      必须返回: "overall_health + dimensions + conductor_recommendations"
+      证据: "各维度评分 + can_proceed 决策 + blockers 列表"
 ```
 
 ---
 
-## 📚 接口总览
+## 四、接口总览
 
 | # | 接口名 | 用途 | 调用者 |
 |---|--------|------|--------|
-| 1 | scan_project | 完整项目扫描 | Plan Agent（已有项目） |
+| 1 | scan_project | 完整项目扫描 | Plan / Test / Review / Conductor Agent |
 | 2 | scan_structure | 扫描目录结构 | 任意 Agent |
 | 3 | scan_tech_stack | 扫描技术栈 | Plan / Spec Agent |
 | 4 | scan_dependencies | 扫描依赖关系 | Spec / Code Agent |
-| 5 | scan_features | 扫描现有功能 | Plan / Spec Agent |
-| 6 | scan_code_quality | 扫描代码质量 | Code / Review Agent |
+| 5 | scan_features | 扫描现有功能 | Plan / Spec / Review Agent |
+| 6 | scan_code_quality | 扫描代码质量 | Code / Test / Review Agent |
 | 7 | scan_problems | 扫描潜在问题 | 任意 Agent |
-| 8 | scan_file | 扫描单个文件 | Code Agent |
-| 9 | compare_scan | 对比两次扫描 | Review Agent |
+| 8 | scan_file | 扫描单个文件 | Code / Review Agent |
+| 9 | compare_scan | 对比两次扫描 | Test / Review / Conductor Agent |
 | 10 | get_scan_history | 获取扫描历史 | 任意 Agent |
-| 11 | scan_code_quality_v2 | 扫描代码规范合规性 | Code Agent / Coder Skills |
+| 11 | scan_code_quality_v2 | 扫描代码规范合规性 | Code / Test / Review Agent |
+| 12 | scan_test_coverage | 扫描测试覆盖率 | Test Agent |
+| 13 | verify_spec_compliance | 验证代码与 Spec 一致性 | Test Agent |
+| 14 | scan_module | 扫描指定模块 | Code / Test / Conductor Agent | 🆕 v1.7
+| 15 | get_project_health | 获取项目健康度 | Conductor Agent | 🆕 v1.7
 
 ---
 
-## 📖 接口详细定义
+## 五、接口详细定义
 
 ### 接口 1: scan_project（完整扫描）
 
@@ -237,6 +307,12 @@ input:
     include_patterns: array         # 包含的文件模式
     exclude_patterns: array         # 排除的文件模式
     max_file_size: number           # 最大文件大小(KB)
+    # 🆕 v1.7 增量扫描模式
+    incremental_mode:
+      enabled: boolean              # 是否启用增量扫描
+      baseline_scan_id: string | null  # 基准扫描ID（增量对比基础）
+      changed_only: boolean         # 仅扫描变化的文件
+      git_diff_base: string | null  # Git diff 基准（如 "HEAD~1", "main"）
   context:
     purpose: string                 # 扫描目的
     requesting_agent: string        # 请求的 Agent
@@ -385,7 +461,19 @@ output:
         - type: string
           description: string
           mitigation: string
-    
+
+  # 🆕 v1.5 场景建议（与 Plan Agent v2.6 对齐）
+  scenario_suggestion:
+    recommended: "new_project" | "iteration" | "batch_delivery" | "refactor"  # 🆕 推荐场景
+    confidence: number                  # 0-1 置信度
+    reasoning: string                   # 推荐理由
+    evidence:                           # 证据列表
+      - indicator: string               # 指标
+        value: string                   # 值
+        supports: string                # 支持的场景类型
+    alternative: string | null          # 备选场景（如果不确定）
+    human_confirmation_needed: boolean  # 是否需要人工确认
+
   # 扫描元信息
   scan_meta:
     files_scanned: number
@@ -396,6 +484,48 @@ output:
   # 存档状态
   archived: boolean
   archive_path: string | null
+
+  # 🆕 v1.8 增量扫描结果（仅当 incremental_mode.enabled = true 时返回）
+  incremental_result:
+    is_incremental: boolean           # 是否为增量扫描
+    baseline_scan_id: string          # 基准扫描ID
+    baseline_scan_time: datetime      # 基准扫描时间
+
+    # 变化概要
+    summary:
+      total_changed_files: number     # 变化文件总数
+      added_files: number             # 新增文件数
+      modified_files: number          # 修改文件数
+      deleted_files: number           # 删除文件数
+      unchanged_files: number         # 未变化文件数
+
+    # 变化文件详情
+    changed_files:
+      added:
+        - path: string
+          lines: number
+          type: "source" | "config" | "test" | "doc" | "other"
+      modified:
+        - path: string
+          lines_added: number
+          lines_removed: number
+          change_type: "content" | "rename" | "both"
+      deleted:
+        - path: string
+          was_lines: number
+
+    # 增量影响分析
+    impact_analysis:
+      affected_features: array        # 受影响的功能
+      affected_modules: array         # 受影响的模块
+      new_problems: array             # 新增的问题
+      resolved_problems: array        # 已解决的问题
+      risk_level: "low" | "medium" | "high"  # 变更风险级别
+
+    # 跳过的内容（未变化，直接复用基准扫描结果）
+    reused_from_baseline:
+      - section: string               # 如 "tech_stack", "dependencies"
+        reason: "no_change"
 ```
 
 #### 重塑分析说明
@@ -436,6 +566,77 @@ refactor_analysis_rules:
     - "后展示层（components, pages）"
     - "每批次不超过 30 个文件"
     - "每批次有明确验证点"
+```
+
+#### 场景识别规则 🆕 v1.5
+
+```yaml
+scenario_detection:
+
+  # 场景类型识别
+  detection_rules:
+
+    new_project:
+      indicators:
+        - ".orchestra/ 目录不存在"
+        - "项目文件数 = 0 或只有配置文件"
+        - "无 src/ 或 app/ 目录"
+        - "只有 package.json 但无 node_modules"
+      confidence_threshold: 0.9
+      reasoning: "项目结构为空或仅初始化"
+
+    iteration:
+      indicators:
+        - ".orchestra/ 目录存在"
+        - "有完整的项目结构"
+        - "代码质量问题 < 20%"
+        - "无严重的架构问题"
+      confidence_threshold: 0.8
+      reasoning: "已有项目，结构清晰，适合迭代添加功能"
+
+    batch_delivery:
+      indicators:
+        - "用户需求涉及多个独立模块"
+        - "预计功能点 > 10 个"
+        - "功能间可并行开发"
+      confidence_threshold: 0.7
+      reasoning: "需求较大，适合分批交付"
+      note: "需结合用户需求判断，纯扫描难以确定"
+
+    refactor:
+      indicators:
+        - ".orchestra/ 目录存在"
+        - "循环依赖 >= 5 处"
+        - "命名违规 >= 30%"
+        - "超大文件 >= 10 个"
+        - "代码质量问题 >= 40%"
+        - "技术债务严重"
+      confidence_threshold: 0.85
+      reasoning: "现有代码问题严重，需要重塑"
+
+  # 场景推荐逻辑
+  recommendation_logic:
+    priority:
+      1: "先检查是否新项目（最高优先级）"
+      2: "再检查是否需要重塑"
+      3: "然后检查是否适合分批"
+      4: "默认为功能迭代"
+
+    confidence_adjustment:
+      - "如果多个场景置信度接近，标记需人工确认"
+      - "如果扫描置信度 < 0.7，所有场景建议都需人工确认"
+
+  # 铁律
+  PS-06:
+    name: "场景建议必须有证据"
+    rule: "scenario_suggestion 必须提供 evidence 数组"
+    检测方法:
+      步骤:
+        1: "检查 scenario_suggestion 是否有 evidence"
+        2: "evidence 至少包含 2 项指标"
+        3: "无证据 = 场景建议无效"
+      证据: "evidence 数组内容"
+    consequence: "无证据的场景建议不能使用"
 ```
 
 #### 扫描深度说明
@@ -1353,7 +1554,439 @@ coder_skill_integration:
 
 ---
 
-## 🔄 与史官（Skill 2）对接
+### 接口 12: scan_test_coverage（测试覆盖率扫描）🆕 v1.6
+
+**用途**: 专为 Test Agent 设计，扫描项目测试覆盖率和测试质量
+
+```yaml
+interface: scan_test_coverage
+
+input:
+  project_path: string
+  code_dir: string | null           # 代码目录（默认 src/）
+  test_dir: string | null           # 测试目录（默认 tests/ 或 __tests__/）
+  scan_config:
+    include_patterns: array | null  # 包含的测试文件模式
+    exclude_patterns: array | null  # 排除的模式
+    framework_hint: "jest" | "pytest" | "vitest" | "mocha" | null  # 测试框架提示
+
+output:
+  scan_id: string
+  scan_time: datetime
+
+  # ========== 测试文件分析 ==========
+  test_files:
+    total: number
+    by_type:
+      unit: number                  # 单元测试文件数
+      integration: number           # 集成测试文件数
+      e2e: number                   # E2E 测试文件数
+    test_file_list:
+      - path: string
+        type: "unit" | "integration" | "e2e"
+        test_count: number          # 测试用例数
+        lines: number
+
+  # ========== 覆盖率分析 ==========
+  coverage:
+    overall: number                 # 总体覆盖率 0-100
+    by_type:
+      line: number                  # 行覆盖率
+      branch: number                # 分支覆盖率
+      function: number              # 函数覆盖率
+      statement: number             # 语句覆盖率
+
+    # 低覆盖率文件
+    low_coverage_files:
+      - file: string
+        coverage: number
+        uncovered_lines: array      # 未覆盖行号
+        priority: "high" | "medium" | "low"
+        suggestion: string
+
+    # 完全未覆盖文件
+    uncovered_files:
+      - file: string
+        lines: number
+        reason_guess: string        # 猜测原因（如"新文件"、"工具类"）
+        should_test: boolean        # 是否应该测试
+
+  # ========== 测试质量分析 ==========
+  test_quality:
+    overall_score: number           # 0-100
+
+    # 测试命名规范
+    naming:
+      descriptive: number           # 描述性命名百分比
+      violations:
+        - test_file: string
+          test_name: string
+          issue: string             # 如 "命名不清晰"
+
+    # 断言质量
+    assertions:
+      avg_per_test: number          # 平均每个测试的断言数
+      tests_without_assertion: number  # 无断言的测试数
+      weak_assertions:              # 弱断言（如只检查 truthy）
+        - test_file: string
+          test_name: string
+          assertion: string
+
+    # 测试隔离性
+    isolation:
+      shared_state_warnings: number # 共享状态警告
+      side_effect_warnings: number  # 副作用警告
+
+  # ========== 与 Spec 对照 ==========
+  spec_coverage:
+    spec_path: string | null        # 如果找到 tech-spec
+    features_in_spec: number        # Spec 中的功能数
+    features_tested: number         # 有测试的功能数
+    untested_features:
+      - feature_name: string
+        spec_location: string       # Spec 中的位置
+        priority: "high" | "medium" | "low"
+
+  # ========== 总结与建议 ==========
+  summary:
+    grade: "A" | "B" | "C" | "D" | "F"
+    pass_phase_a: boolean           # 是否满足 Phase A 验收
+    pass_phase_b: boolean           # 是否满足 Phase B 验收
+    blocking_issues:
+      - issue: string
+        severity: "critical" | "high"
+    recommendations:
+      - priority: number
+        action: string
+        impact: string
+```
+
+---
+
+### 接口 13: verify_spec_compliance（Spec 一致性验证）🆕 v1.6
+
+**用途**: 专为 Test Agent 设计，验证代码是否与 Tech Spec 一致
+
+```yaml
+interface: verify_spec_compliance
+
+input:
+  project_path: string
+  spec_path: string                 # Tech Spec 路径
+  code_dir: string                  # 代码目录
+  verification_scope:
+    check_signatures: boolean       # 检查函数签名
+    check_types: boolean            # 检查类型定义
+    check_modules: boolean          # 检查模块结构
+    check_apis: boolean             # 检查 API 端点
+
+output:
+  verification_id: string
+  verification_time: datetime
+  spec_version: string              # Spec 版本
+
+  # ========== 签名一致性 ==========
+  signature_compliance:
+    total_functions: number         # Spec 中定义的函数数
+    matched: number                 # 一致的数量
+    mismatched: number              # 不一致的数量
+    missing: number                 # 代码中缺失的数量
+    extra: number                   # 代码中多余的数量
+
+    mismatches:
+      - function_name: string
+        spec_signature: string      # Spec 中的签名
+        code_signature: string      # 代码中的签名
+        difference: string          # 差异说明
+        file: string
+        line: number
+        severity: "critical" | "high" | "medium"
+
+    missing_implementations:
+      - function_name: string
+        spec_location: string
+        expected_file: string       # 期望的文件位置
+
+  # ========== 类型一致性 ==========
+  type_compliance:
+    total_types: number             # Spec 中定义的类型数
+    matched: number
+    mismatched: number
+    missing: number
+
+    mismatches:
+      - type_name: string
+        spec_definition: string
+        code_definition: string
+        difference: string
+        severity: "critical" | "high" | "medium"
+
+  # ========== 模块结构一致性 ==========
+  module_compliance:
+    spec_modules: array             # Spec 定义的模块
+    actual_modules: array           # 实际模块
+    structure_match: boolean
+    issues:
+      - type: "missing_module" | "extra_module" | "wrong_location"
+        module: string
+        expected: string | null
+        actual: string | null
+
+  # ========== API 一致性 ==========
+  api_compliance:
+    total_endpoints: number
+    matched: number
+    mismatched: number
+
+    mismatches:
+      - endpoint: string
+        method: string
+        spec_definition: object
+        code_definition: object
+        differences: array
+
+  # ========== 总结 ==========
+  summary:
+    overall_compliance: number      # 0-100 一致性评分
+    grade: "A" | "B" | "C" | "D" | "F"
+
+    critical_issues: number         # 严重问题数
+    high_issues: number
+    medium_issues: number
+
+    phase_a_ready: boolean          # Phase A 是否可以通过
+    blocking_reasons: array         # 阻断原因
+
+    recommendations:
+      - priority: number
+        issue: string
+        fix_suggestion: string
+```
+
+---
+
+### 接口 14: scan_module（模块扫描）🆕 v1.7
+
+**用途**: 扫描项目中的指定模块（一组相关文件），适用于大项目分模块开发
+
+```yaml
+interface: scan_module
+
+input:
+  project_path: string              # 项目根目录
+  module_path: string               # 模块路径（相对于项目根目录，如 "src/auth/"）
+  module_config:
+    include_dependencies: boolean   # 是否扫描模块依赖的其他模块
+    dependency_depth: number        # 依赖扫描深度（默认 1）
+    scan_depth: "quick" | "deep"    # 扫描深度
+  context:
+    purpose: string                 # 扫描目的
+    requesting_agent: string        # 请求的 Agent
+    project_id: string | null       # 项目ID
+
+output:
+  scan_id: string
+  scan_time: datetime
+  module_info:
+    path: string
+    name: string                    # 模块名（从路径推断或从配置读取）
+    total_files: number
+    total_lines: number
+
+  # 模块内部结构
+  structure:
+    entry_points: array             # 模块入口（如 index.ts）
+    internal_files: array           # 内部文件列表
+    exports: array                  # 模块对外导出
+
+  # 模块依赖分析
+  dependencies:
+    internal:                       # 模块内部依赖
+      - from_file: string
+        imports: array
+    external:                       # 对外部模块的依赖
+      - module: string
+        imported_by: array
+        importance: "critical" | "normal" | "optional"
+    dependents:                     # 依赖此模块的其他模块
+      - module: string
+        files: array
+
+  # 模块代码质量
+  code_quality:
+    metrics:
+      avg_file_lines: number
+      max_file_lines: number
+      complexity_score: number | null
+    issues:
+      - type: string
+        file: string
+        line: number
+        description: string
+        severity: "high" | "medium" | "low"
+
+  # 模块级问题
+  problems:
+    - type: string
+      description: string
+      evidence:
+        file: string
+        line: number | null
+      recommendation: string
+
+  # 模块健康度
+  health_score:
+    overall: number                 # 0-100
+    factors:
+      cohesion: number              # 内聚度
+      coupling: number              # 耦合度（越低越好）
+      test_coverage: number | null  # 测试覆盖
+      documentation: number         # 文档完整度
+```
+
+---
+
+### 接口 15: get_project_health（项目健康度）🆕 v1.7
+
+**用途**: 专为 Conductor Agent 设计，快速获取项目整体健康状态，用于协调决策
+
+```yaml
+interface: get_project_health
+
+input:
+  project_path: string
+  quick_mode: boolean               # 快速模式（仅返回关键指标，跳过深度分析）
+  focus_areas: array | null         # 关注领域（如 ["code_quality", "test_coverage"]）
+
+output:
+  health_id: string
+  check_time: datetime
+
+  # ========== 整体健康度 ==========
+  overall_health:
+    score: number                   # 0-100
+    grade: "A" | "B" | "C" | "D" | "F"
+    status: "healthy" | "warning" | "critical"
+    trend: "improving" | "stable" | "declining" | "unknown"  # 与上次对比
+
+  # ========== 各维度健康度 ==========
+  dimensions:
+
+    # 代码质量
+    code_quality:
+      score: number
+      status: "healthy" | "warning" | "critical"
+      key_issues:
+        - issue: string
+          severity: "critical" | "high" | "medium"
+
+    # 测试健康度
+    test_health:
+      score: number
+      coverage: number | null
+      status: "healthy" | "warning" | "critical"
+      untested_critical_paths: number
+
+    # 依赖健康度
+    dependency_health:
+      score: number
+      outdated_count: number
+      security_issues: number
+      status: "healthy" | "warning" | "critical"
+
+    # 架构健康度
+    architecture_health:
+      score: number
+      circular_dependencies: number
+      oversized_files: number
+      status: "healthy" | "warning" | "critical"
+
+    # 文档健康度
+    documentation_health:
+      score: number
+      coverage: number              # 关键函数/API 的文档覆盖率
+      status: "healthy" | "warning" | "critical"
+
+  # ========== 阻断性问题 ==========
+  blockers:
+    count: number
+    items:
+      - type: string
+        description: string
+        severity: "critical"
+        location: string
+        recommendation: string
+
+  # ========== 风险预警 ==========
+  risk_alerts:
+    - level: "high" | "medium" | "low"
+      area: string
+      description: string
+      potential_impact: string
+
+  # ========== Conductor 决策建议 ==========
+  conductor_recommendations:
+    can_proceed: boolean            # 是否可以继续执行
+    suggested_actions:
+      - priority: number
+        action: string
+        reason: string
+        blocking: boolean           # 是否为阻断性建议
+    pause_reasons: array | null     # 如果 can_proceed=false，暂停原因
+
+  # ========== 与上次健康检查对比 ==========
+  comparison:
+    last_check_id: string | null
+    last_check_time: datetime | null
+    changes:
+      improved: array               # 改善的指标
+      degraded: array               # 恶化的指标
+      unchanged: array              # 未变的指标
+```
+
+#### Conductor Agent 使用场景
+
+```yaml
+conductor_usage:
+
+  # 场景 1: 阶段切换前检查
+  before_stage_transition:
+    timing: "Plan → Code, Code → Test, Test → Review"
+    action: |
+      调用 get_project_health(quick_mode=true)
+      检查 can_proceed
+      如果有 blockers，暂停并报告
+
+  # 场景 2: 定期健康巡检
+  periodic_health_check:
+    timing: "每个 Phase 完成后"
+    action: |
+      调用 get_project_health(quick_mode=false)
+      记录健康趋势
+      发现恶化及时预警
+
+  # 场景 3: 异常恢复决策
+  recovery_decision:
+    timing: "某阶段失败后"
+    action: |
+      调用 get_project_health
+      基于健康状态决定：
+        - 回滚到上一个稳定状态
+        - 修复后重试
+        - 人工介入
+
+  # 场景 4: 项目启动前评估
+  project_kickoff:
+    timing: "Conductor 接手项目时"
+    action: |
+      调用 get_project_health
+      了解项目当前状态
+      规划执行策略
+```
+
+---
+
+## 六、与史官（Skill 2）对接
 
 ```yaml
 archivist_integration:
@@ -1386,7 +2019,7 @@ archivist_integration:
 
 ---
 
-## 📄 扫描报告模板
+## 七、扫描报告模板
 
 ```markdown
 # 📂 项目扫描报告
@@ -1509,7 +2142,7 @@ archivist_integration:
 
 ---
 
-## 🔄 调用流程示例
+## 八、调用流程示例
 
 ### Plan Agent 调用（已有项目需求采集）
 
@@ -1578,14 +2211,126 @@ flow_review_changes:
     params:
       scan_id_before: "scan-001"
       scan_id_after: "scan-002"
-      
+
   step_2:
     action: "分析变更是否符合需求"
 ```
 
+### Test Agent 调用（验收检查）🆕 v1.8
+
+```yaml
+flow_test_verification:
+
+  step_1:
+    action: "Phase A 验收前"
+    interface: scan_test_coverage
+    params:
+      project_path: "/path/to/project"
+      code_dir: "src/"
+      test_dir: "tests/"
+    result:
+      coverage: 85
+      grade: "B"
+      pass_phase_a: true
+
+  step_2:
+    action: "验证代码与 Spec 一致性"
+    interface: verify_spec_compliance
+    params:
+      project_path: "/path/to/project"
+      spec_path: ".orchestra/specs/tech-spec.md"
+      code_dir: "src/"
+      verification_scope:
+        check_signatures: true
+        check_types: true
+        check_apis: true
+    result:
+      overall_compliance: 92
+      phase_a_ready: true
+
+  step_3:
+    condition: "pass_phase_a && phase_a_ready"
+    action: "通过 Phase A 验收"
+
+  step_4:
+    condition: "验收失败"
+    action: "记录问题，通知 Code Agent 修复"
+```
+
+### Conductor Agent 调用（项目协调）🆕 v1.8
+
+```yaml
+flow_conductor_coordination:
+
+  # 场景：项目启动时评估
+  scenario_project_kickoff:
+    step_1:
+      action: "Conductor 接手项目"
+      interface: get_project_health
+      params:
+        project_path: "/path/to/project"
+        quick_mode: false
+      result:
+        overall_health:
+          score: 75
+          grade: "B"
+          status: "warning"
+        can_proceed: true
+
+    step_2:
+      action: "基于健康度规划执行策略"
+      decision:
+        if_healthy: "正常流程执行"
+        if_warning: "关注 risk_alerts，监控执行"
+        if_critical: "先修复阻断问题"
+
+  # 场景：阶段切换前检查
+  scenario_stage_transition:
+    step_1:
+      action: "Code → Test 阶段切换前"
+      interface: get_project_health
+      params:
+        project_path: "/path/to/project"
+        quick_mode: true
+        focus_areas: ["code_quality", "test_health"]
+
+    step_2:
+      action: "检查是否可以切换"
+      check: "can_proceed == true && blockers.count == 0"
+
+    step_3:
+      condition: "检查通过"
+      action: "允许切换到 Test 阶段"
+
+    step_4:
+      condition: "检查失败"
+      action: "暂停切换，报告 blockers，等待修复"
+
+  # 场景：模块级扫描（大项目）
+  scenario_module_scan:
+    step_1:
+      action: "大项目，只关注 auth 模块"
+      interface: scan_module
+      params:
+        project_path: "/path/to/project"
+        module_path: "src/auth/"
+        module_config:
+          include_dependencies: true
+          dependency_depth: 1
+          scan_depth: "deep"
+      result:
+        health_score:
+          overall: 80
+          cohesion: 85
+          coupling: 70
+
+    step_2:
+      action: "基于模块健康度决定是否需要重构"
+```
+
 ---
 
-## ⚠️ 错误处理
+## 九、错误处理
 
 ```yaml
 error_handling:
@@ -1618,7 +2363,7 @@ error_handling:
 
 ---
 
-## 📂 存档目录结构
+## 十、存档目录结构
 
 ```
 .orchestra/
@@ -1636,7 +2381,7 @@ error_handling:
 
 ---
 
-## 🔐 安全说明
+## 十一、安全说明
 
 ```yaml
 security:
@@ -1660,7 +2405,7 @@ security:
 
 ---
 
-## 📊 置信度评分机制 🆕
+## 十二、置信度评分机制
 
 > v1.4 新增：解决扫描结果可靠性问题
 
@@ -1670,7 +2415,7 @@ security:
 confidence_calculation:
 
   description: |
-    钦天监扫描结果并非 100% 准确。置信度评分机制用于：
+    巡按御史扫描结果并非 100% 准确。置信度评分机制用于：
     1. 告知用户哪些结果是高度可信的
     2. 标注哪些结果需要人工确认
     3. 避免 Agent 基于低置信度结果做出错误决策
@@ -1816,10 +2561,110 @@ confidence_calculation:
 
 ---
 
-## 📋 版本历史
+## 十三、被 Spec Agent 核心 Skills 调用说明
+
+```yaml
+# ════════════════════════════════════════════════════════════════════════════
+#  巡按御史被哪些核心 Skills 调用，如何配合
+# ════════════════════════════════════════════════════════════════════════════
+
+called_by_core_skills:
+
+  # ═══════════════════════════════════════════════════════════════
+  # 将作监（module-planner）调用
+  # ═══════════════════════════════════════════════════════════════
+  module_planner:
+    调用场景: "迭代/重构项目的模块规划"
+    调用接口:
+      - scan_project: "获取现有模块结构"
+      - scan_dependencies: "获取依赖关系图"
+    传递数据:
+      - existing_modules: "现有模块列表"
+      - dependency_graph: "依赖关系图"
+      - tech_stack: "技术栈信息"
+    配合要点:
+      - "scan_report.modules 必须包含 id, path, dependencies"
+      - "dependency_graph 必须标注方向（from → to）"
+      - "将作监用此数据识别可复用模块、检测依赖冲突"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 典簿（spec-template）调用
+  # ═══════════════════════════════════════════════════════════════
+  spec_template:
+    调用场景: "选择合适的模板"
+    调用接口:
+      - scan_tech_stack: "获取 API 风格和架构类型"
+    传递数据:
+      - api_style: "REST | GraphQL | RPC"
+      - architecture: "monolith | microservice | modular_monolith"
+    配合要点:
+      - "api_style 基于 routes 文件或 schema 文件判断"
+      - "architecture 基于目录结构和服务定义判断"
+      - "典簿用此数据选择对应风格的模板"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 照磨（tech-validator）调用
+  # ═══════════════════════════════════════════════════════════════
+  tech_validator:
+    调用场景: "迭代/重构项目的 Spec 校验"
+    调用接口:
+      - scan_project: "获取现有代码结构"
+      - scan_features: "获取现有功能列表"
+    传递数据:
+      - modules: "现有模块列表"
+      - features: "现有功能列表"
+      - api_routes: "现有 API 列表"
+    配合要点:
+      - "照磨用 modules 验证 Spec 声称修改的模块是否存在"
+      - "照磨用 api_routes 检测新增 API 是否与现有冲突"
+      - "照磨用 features 评估变更影响范围"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 契约守卫（contract-guardian）调用
+  # ═══════════════════════════════════════════════════════════════
+  contract_guardian:
+    调用场景: "迭代/重构项目的契约验证"
+    调用接口:
+      - scan_project: "定位契约文件"
+      - scan_structure: "获取目录结构"
+    传递数据:
+      - modules[].path: "模块路径（定位 types/interfaces 目录）"
+      - structure: "目录树"
+    配合要点:
+      - "契约守卫用 modules.path 快速定位契约文件"
+      - "优先扫描 types/, interfaces/, schemas/ 目录"
+      - "减少全量扫描时间"
+
+  # ═══════════════════════════════════════════════════════════════
+  # scan_report 标准输出字段（供核心 Skills 使用）
+  # ═══════════════════════════════════════════════════════════════
+  standard_output_for_skills:
+    必须字段:
+      - "modules[].id"
+      - "modules[].path"
+      - "modules[].dependencies"
+      - "dependency_graph"
+      - "tech_stack.api_style"
+      - "tech_stack.architecture"
+      - "features[]"
+      - "api_routes[]"
+    可选字段:
+      - "code_metrics（重构项目用）"
+      - "problems[]（问题列表）"
+```
+
+---
+
+## 十四、版本历史
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
+| v1.9.1 | 2026-02-03 | 🔧 调用者列表更新：scan_project/scan_features/scan_file/scan_code_quality_v2 四个接口添加 Review Agent 为授权调用者 |
+| v1.9 | 2026-01-31 | 🆕 添加"被 Spec Agent 核心 Skills 调用说明"章节：将作监/典簿/照磨/契约守卫如何调用巡按御史、传递数据、配合要点、标准输出字段 |
+| v1.8 | 2026-01-31 | 🔧 **完善修复**：①修复 PS-05/PS-06 铁律编号冲突；②scan_project 添加 incremental_result 输出字段（增量扫描结果）；③补充全部 15 个接口的调用证据要求；④新增 Test Agent 和 Conductor Agent 调用流程示例 |
+| v1.7 | 2026-01-31 | 🆕 **重大更新**：①改名「钦天监」→「巡按御史」；②Conductor Agent 全面支持：接口总览添加 Conductor Agent、新增接口 15 get_project_health（项目健康度）；③新增接口 14 scan_module（模块扫描）；④scan_project 新增增量扫描模式（incremental_mode）；⑤更新架构图添加所有 6 个 Agent |
+| v1.6 | 2026-01-30 | 🆕 Test Agent 支持：新增接口 12 scan_test_coverage（测试覆盖率）、接口 13 verify_spec_compliance（Spec 一致性验证）；更新调用者列表（scan_code_quality 添加 Test Agent、compare_scan 添加 Test Agent） |
+| v1.5 | 2026-01-30 | 🆕 与 Plan Agent v2.6 对齐：新增 scenario_suggestion 场景建议输出，包含场景识别规则、证据支持、人工确认标记；更新 PS-05 铁律 |
 | v1.4 | 2026-01-25 | 新增置信度评分机制：整体置信度、四维因素评分、低置信度项标注、新增 PS-05 铁律 |
 | v1.3 | 2026-01-25 | 新增：接口 11 scan_code_quality_v2（代码规范合规性扫描），对接 coder-standards/STANDARDS.md，支持 Skill 特定规则豁免 |
 | v1.2 | 2026-01-23 | 防虚报审查修复：真实性保障机制改为铁律格式（PS-01~PS-04）、添加检测方法、违规后果、调用证据要求 |
@@ -1828,4 +2673,4 @@ confidence_calculation:
 
 ---
 
-**📂 项目扫描器（钦天监）· 完**
+**📂 项目扫描器（巡按御史）· 完**

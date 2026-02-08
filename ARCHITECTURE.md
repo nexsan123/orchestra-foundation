@@ -1,7 +1,7 @@
 # 🏛️ Orchestra 架构规范（永乐大典）
 
-> 版本：v3.0
-> 更新：2026-01-25
+> 版本：v3.11
+> 更新：2026-02-06
 > 适用范围：所有 Agent、Skill 和项目
 > 状态：**强制执行**
 
@@ -27,45 +27,53 @@
 
 | Agent | 别名 | 职责 | 版本 |
 |-------|------|------|------|
-| **Conductor Agent** | 内阁首辅 | 总指挥、流程协调、问题路由、多项目管理 | v1.2 |
-| **Plan Agent** | 翰林院学士 | 需求规划、项目采访 | v2.2 |
-| **Spec Agent** | 工部尚书 | 技术规格、模块设计 | v1.7 |
-| **Code Agent** | 工部侍郎 | 代码实现、Phase A/B | v1.7 |
-| **Test Agent** | 工部主事 | 质量验收、契约验证、TDD、Eval | v2.0 |
-| **Review Agent** | 都察院御史 | 代码审查、最终验收、项目说明、OWASP 安全审查 | v2.0 |
+| **Conductor Agent** | 内阁首辅 | 总指挥、流程协调、问题路由、多项目管理 | v1.8.6 |
+| **Plan Agent** | 翰林院学士 | 需求规划、项目采访 | v2.7.5 |
+| **Spec Agent** | 工部尚书 | 技术规格、模块设计 | v2.3.5 |
+| **Code Agent** | 工部侍郎 | 代码实现、Phase A/B | v2.0.4 |
+| **Test Agent** | 工部主事 | 质量验收、契约验证、TDD、Eval | v2.6.4 |
+| **Review Agent** | 都察院御史 | 代码审查、最终验收、目标核对、OWASP 安全审查 | v2.5.4 |
 
 ### 1.2 Core Skill 层（4个）
 
 | Skill | 别名 | 职责 | 版本 |
 |-------|------|------|------|
-| **dialogue-archivist** | 史官 | 全程记录、存档追溯、持续学习 | v1.8 |
-| **project-scanner** | 钦天监 | 项目扫描、真实禀报 | v1.2 |
-| **module-planner** | 将作监 | 模块规划、命名规范 | v1.4 |
-| **contract-guardian** | 契约守卫 | 契约验证、快照管理 | v1.4 |
+| **dialogue-archivist** | 史官 | 全程记录、存档追溯、持续学习 | v2.8 |
+| **project-scanner** | 巡按御史 | 项目扫描、真实禀报 | v1.9 |
+| **module-planner** | 将作监 | 模块规划、命名规范 | v1.6 |
+| **contract-guardian** | 契约守卫 | 契约验证、快照管理 | v1.8 |
 
 ### 1.3 Coder Skill 层（5个）
 
 | Skill | 负责端 | 版本 |
 |-------|--------|------|
-| **shared-coder** | 共享层（types, utils, hooks） | v1.1 |
-| **backend-coder** | 后端（NestJS, API） | v1.2 |
-| **web-coder** | Web 前端（React） | v1.2 |
-| **mobile-coder** | 移动端（React Native） | v1.2 |
-| **desktop-coder** | 桌面端（Electron） | v1.2 |
+| **shared-coder** | 共享层（types, utils, hooks） | v2.1 |
+| **backend-coder** | 后端（NestJS, API） | v2.4 |
+| **web-coder** | Web 前端（React） | v2.1 |
+| **mobile-coder** | 移动端（React Native） | v2.1 |
+| **desktop-coder** | 桌面端（Electron） | v2.1 |
 
 ### 1.4 Template/Validator Skill 层（3个）
 
 | Skill | 职责 | 版本 |
 |-------|------|------|
-| **requirement-template** | 需求采集模板 | v1.0 |
-| **spec-template** | 技术规格模板 | v1.1 |
-| **tech-validator** | 技术方案校验 | v1.1 |
+| **requirement-template** | 需求采集模板 | v1.8 |
+| **spec-template** | 技术规格模板 | v2.1 |
+| **tech-validator** | 技术方案校验 | v2.0 |
 
-### 1.5 Infrastructure Skill 层（1个）
+### 1.5 Infrastructure Skill 层（3个）
 
 | Skill | 别名 | 职责 | 版本 |
 |-------|------|------|------|
-| **hooks-system** | 钩子系统 | 生命周期钩子、自动化触发、事件拦截 | v1.0 |
+| **hooks-system** | 内侍省 | 生命周期钩子、自动化触发、事件拦截 | v2.0 |
+| **verification-executor** | 督工御史 | 独立执行验证命令、生成验证证据链 | v1.1 |
+| **runtime-inspector** | 亲验使 | 运行时验证、页面截图取证、E2E 验证 | v1.0 |
+
+### 1.6 Governance Skill 层（1个）
+
+| Skill | 别名 | 职责 | 版本 |
+|-------|------|------|------|
+| **imperial-scribe** | 司礼监 | 贴身辅助、全局审计、对接协议管理、御前终验 | v2.9 |
 
 ---
 
@@ -85,7 +93,7 @@
 │  ┌─────────────────────────────────────────────────────────────────────┐  │
 │  │                        Core Skills 层                                │  │
 │  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐          │  │
-│  │  │   史官   │ │  钦天监  │ │  将作监  │ │   契约守卫      │          │  │
+│  │  │   史官   │ │  巡按御史  │ │  将作监  │ │   契约守卫      │          │  │
 │  │  │ 全程记录 │ │ 项目扫描 │ │ 模块规划 │ │ 契约验证       │          │  │
 │  │  └──────────┘ └──────────┘ └──────────┘ └────────────────┘          │  │
 │  └─────────────────────────────────────────────────────────────────────┘  │
@@ -231,20 +239,20 @@ agent_skill_mapping:
 
 | 场景 | 流程 | Phase A/B |
 |------|------|-----------|
-| **新项目开发** | Plan → Spec → Code → Test | 完整 Phase A + B |
-| **功能迭代** | (判断是否需要契约变更) → Code → Test | 轻量 Phase A（如有新契约）+ Phase B |
-| **项目重塑** | Scan → Spec → 契约迁移 → 批次迁移 → Test | 契约迁移 + 分批次 Phase B |
+| **新项目开发** | Plan → Spec → Code → Test → Review | 完整 Phase A + B |
+| **功能迭代** | (判断是否需要契约变更) → Code → Test → Review | 轻量 Phase A（如有新契约）+ Phase B |
+| **项目重塑** | Scan → Spec → 契约迁移 → 批次迁移 → Test → Review | 契约迁移 + 分批次 Phase B |
 
 ---
 
 ## 四、强制规则
 
-### 规则 1：扫描必须经由钦天监
+### 规则 1：扫描必须经由巡按御史
 
 ```yaml
 rule_1_scanner:
   name: "唯一扫描入口"
-  description: "所有 Agent 了解项目现状，必须通过钦天监扫描"
+  description: "所有 Agent 了解项目现状，必须通过巡按御史扫描"
   
   禁止行为:
     - "Agent 自行'扫描'或'查看'项目"
@@ -252,7 +260,7 @@ rule_1_scanner:
     - "美化或隐瞒扫描结果"
     
   必须行为:
-    - "调用钦天监接口获取真实数据"
+    - "调用巡按御史接口获取真实数据"
     - "如实呈现扫描结果"
     - "保留证据来源（文件路径、行号）"
 ```
@@ -294,6 +302,669 @@ rule_4_read_laws:
   
   文件: "CLAUDE.md（< 50 行）"
   时机: "每次执行前"
+```
+
+### 规则 5：证据格式标准 🆕 v3.7
+
+```yaml
+evidence_format_standard:
+  name: "证据格式统一标准"
+  description: "所有证据要求必须使用标准格式"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 推荐格式（新增时必须使用）
+  # ═══════════════════════════════════════════════════════════════
+  recommended_format:
+    name: "分类式"
+    status: "推荐标准"
+    structure:
+      evidence_requirement:
+        required:
+          - item: "必须提供的证据项"
+            type: "output | screenshot | log | file"
+        optional:
+          - item: "可选提供的证据项"
+            type: "output | screenshot | log | file"
+    example: |
+      evidence_requirement:
+        required:
+          - item: "handshake_id 返回值"
+            type: "output"
+          - item: "stage_session_id 返回值"
+            type: "output"
+        optional:
+          - item: "完整调用日志"
+            type: "log"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 兼容格式（现有内容可保留，逐步迁移）
+  # ═══════════════════════════════════════════════════════════════
+  legacy_format:
+    name: "简单式"
+    status: "兼容格式"
+    structure:
+      接口名:
+        必须返回: "返回值描述"
+        证据: "证据描述"
+    migration_policy: "大版本迭代时逐步迁移"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 执行规则
+  # ═══════════════════════════════════════════════════════════════
+  rules:
+    - "新增证据要求时，必须使用推荐格式"
+    - "修改现有证据要求时，建议同时升级格式"
+    - "现有兼容格式可继续使用，无强制迁移"
+    - "大版本迭代（如 v4.0）时全面统一"
+```
+
+### 规则 6：报告 Header 格式标准 🆕 v3.8
+
+```yaml
+report_header_standard:
+  name: "报告 Header 统一标准"
+  description: "所有 Agent 输出报告必须使用标准 Header 格式"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 推荐格式（新增报告必须使用）
+  # ═══════════════════════════════════════════════════════════════
+  recommended_format:
+    name: "YAML Front Matter"
+    status: "推荐标准"
+    structure: |
+      ---
+      report_type: "{类型}"      # plan_report | tech_spec | test_report | review_report | status_report
+      version: "{语义版本}"       # 1.0.0 格式
+      project_id: "{项目ID}"
+      project_name: "{项目名称}"
+      created_at: "{ISO8601}"    # 2026-02-06T10:00:00Z
+      updated_at: "{ISO8601}"    # 可选，更新时填写
+      author: "{Agent名称}"      # Plan Agent | Spec Agent | ...
+      ---
+
+    example: |
+      ---
+      report_type: "test_report"
+      version: "1.2.0"
+      project_id: "proj_abc123"
+      project_name: "stock-analysis"
+      created_at: "2026-02-06T10:30:00Z"
+      author: "Test Agent"
+      ---
+
+  # ═══════════════════════════════════════════════════════════════
+  # 字段规范
+  # ═══════════════════════════════════════════════════════════════
+  field_specs:
+    report_type:
+      required: true
+      values: ["plan_report", "tech_spec", "test_report", "review_report", "status_report"]
+    version:
+      required: true
+      format: "semantic_versioning (major.minor.patch)"
+    project_id:
+      required: true
+      format: "string, unique identifier"
+    project_name:
+      required: true
+      format: "lowercase_kebab (my-project)"
+    created_at:
+      required: true
+      format: "ISO 8601 (YYYY-MM-DDTHH:mm:ssZ)"
+    updated_at:
+      required: false
+      format: "ISO 8601"
+    author:
+      required: true
+      values: ["Plan Agent", "Spec Agent", "Code Agent", "Test Agent", "Review Agent", "Conductor Agent"]
+
+  # ═══════════════════════════════════════════════════════════════
+  # 兼容格式
+  # ═══════════════════════════════════════════════════════════════
+  legacy_formats:
+    - name: "无 Header"
+      status: "兼容"
+      migration: "大版本迭代时补充"
+    - name: "非标准 Header"
+      status: "兼容"
+      migration: "修改时升级"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 执行规则
+  # ═══════════════════════════════════════════════════════════════
+  rules:
+    - "新增报告模板时，必须使用推荐格式"
+    - "version 必须使用语义版本号（major.minor.patch）"
+    - "日期必须使用 ISO 8601 格式"
+    - "现有报告格式可继续使用，逐步迁移"
+```
+
+### 规则 7：错误代码格式标准 🆕 v3.8
+
+```yaml
+error_code_standard:
+  name: "错误代码统一标准"
+  description: "所有 Agent 和 Skill 的错误代码必须遵循统一格式"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 错误代码体系
+  # ═══════════════════════════════════════════════════════════════
+  code_system:
+
+    # === 系统级错误（E-系列）===
+    system_errors:
+      prefix: "E"
+      format: "E-{NNN}"
+      range: "E-001 ~ E-099"
+      description: "系统级、流程级错误"
+      examples:
+        - "E-001: Skill 调用失败"
+        - "E-002: Agent 交接失败"
+        - "E-003: 用户无响应超时"
+      used_by: ["Conductor Agent", "所有 Agent 通用"]
+
+    # === 反馈代码（FB-系列）===
+    feedback_codes:
+      prefix: "FB"
+      format: "FB-{SOURCE}-{TARGET}-{NN}"
+      description: "Agent 间反馈代码，用于打回/修正"
+      naming:
+        SOURCE: "发送方 (TEST, REVIEW, SPEC, PLAN)"
+        TARGET: "接收方 (CODE, SPEC, PLAN, TEST)"
+        NN: "两位序号 (01-99)"
+      examples:
+        - "FB-TEST-CODE-01: 编译失败"
+        - "FB-REVIEW-CODE-02: 逻辑错误"
+        - "FB-SPEC-PLAN-01: 需求不完整"
+      used_by: ["Test Agent", "Review Agent", "Spec Agent"]
+
+    # === Skill 错误（{PREFIX}-系列）===
+    skill_errors:
+      format: "{SKILL_PREFIX}-E{NNN}"
+      description: "Skill 专属错误代码"
+      prefixes:
+        CG: "Contract Guardian"
+        DA: "Dialogue Archivist"
+        PS: "Project Scanner"
+        MP: "Module Planner"
+        VE: "Verification Executor"
+        RI: "Runtime Inspector"
+      examples:
+        - "CG-E001: 代码目录不存在"
+        - "DA-E001: 项目未初始化"
+        - "PS-E001: 扫描目标不存在"
+      range: "{PREFIX}-E001 ~ {PREFIX}-E099"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 错误严重程度
+  # ═══════════════════════════════════════════════════════════════
+  severity_levels:
+    CRITICAL:
+      code_suffix: "无"
+      description: "致命错误，必须中断流程"
+      action: "立即上报皇上"
+    ERROR:
+      code_suffix: "无"
+      description: "错误，需要处理才能继续"
+      action: "修复后重试"
+    WARNING:
+      code_suffix: "无"
+      description: "警告，可继续但需关注"
+      action: "记录，继续执行"
+    INFO:
+      code_suffix: "无"
+      description: "信息，仅记录"
+      action: "记录"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 兼容格式
+  # ═══════════════════════════════════════════════════════════════
+  legacy_formats:
+    - pattern: "E1, E2, E3..."
+      status: "兼容"
+      migration: "改为 E-001, E-002, E-003"
+    - pattern: "E001, E002..."
+      status: "兼容"
+      migration: "改为 E-001, E-002（加连字符）"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 执行规则
+  # ═══════════════════════════════════════════════════════════════
+  rules:
+    - "新增错误代码必须遵循上述格式"
+    - "系统级错误使用 E-NNN"
+    - "Agent 间反馈使用 FB-SOURCE-TARGET-NN"
+    - "Skill 错误使用 {PREFIX}-ENNN"
+    - "现有格式可继续使用，逐步迁移"
+```
+
+### 规则 8：接口定义格式标准 🆕 v3.9
+
+```yaml
+interface_definition_standard:
+  name: "接口定义统一标准"
+  description: "所有 Skill 和 Agent 的接口定义必须遵循统一格式"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 推荐格式（新接口必须使用）
+  # ═══════════════════════════════════════════════════════════════
+  recommended_format:
+    structure: |
+      ```yaml
+      interface_name:
+        description: "接口用途的一句话描述"
+
+        params:
+          param_name:
+            type: "string | number | boolean | object | array | null"
+            required: true | false
+            description: "参数说明"
+            default: "默认值（可选）"
+            example: "示例值（可选）"
+
+        returns:
+          field_name:
+            type: "类型"
+            description: "返回字段说明"
+
+        errors:
+          - code: "E-001 | FB-XXX-YYY-01 | PREFIX-E001"
+            condition: "触发条件"
+
+        example:
+          call: |
+            接口调用示例代码
+          response: |
+            响应示例
+      ```
+
+    example: |
+      ```yaml
+      init_project:
+        description: "初始化项目档案馆"
+
+        params:
+          project_name:
+            type: "string"
+            required: true
+            description: "项目名称"
+            example: "my-app"
+          complexity:
+            type: "simple | medium | complex | null"
+            required: false
+            description: "项目复杂度（可选，自动判断）"
+            default: null
+
+        returns:
+          project_id:
+            type: "string"
+            description: "项目唯一标识"
+          status:
+            type: "string"
+            description: "项目状态"
+
+        errors:
+          - code: "DA-E001"
+            condition: "项目已存在"
+          - code: "DA-E002"
+            condition: "名称不合法"
+
+        example:
+          call: |
+            archivist.init_project({
+              project_name: "my-app",
+              complexity: null
+            })
+          response: |
+            {
+              project_id: "proj_abc123",
+              status: "initialized"
+            }
+      ```
+
+  # ═══════════════════════════════════════════════════════════════
+  # 字段规范
+  # ═══════════════════════════════════════════════════════════════
+  field_requirements:
+    必须字段:
+      - "description: 接口用途说明"
+      - "params: 输入参数定义"
+      - "returns: 返回值定义"
+    推荐字段:
+      - "errors: 可能的错误码"
+      - "example: 调用示例"
+    可选字段:
+      - "since: 引入版本"
+      - "deprecated: 废弃信息"
+      - "see_also: 相关接口"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 参数类型规范
+  # ═══════════════════════════════════════════════════════════════
+  type_conventions:
+    primitive:
+      - "string"
+      - "number"
+      - "boolean"
+      - "null"
+    composite:
+      - "object"
+      - "array"
+      - "string[]"
+      - "number[]"
+    union:
+      - "type_a | type_b"
+    literal:
+      - '"value1" | "value2"'
+
+  # ═══════════════════════════════════════════════════════════════
+  # 兼容格式（现有格式可继续使用）
+  # ═══════════════════════════════════════════════════════════════
+  legacy_formats:
+    format_a:
+      name: "扁平格式（史官风格）"
+      pattern: |
+        interface: xxx
+        input:
+          field: type
+        output:
+          field: type
+      status: "兼容"
+      migration: "params 替换 input，returns 替换 output"
+
+    format_b:
+      name: "详细格式（契约守卫风格）"
+      pattern: |
+        xxx_function:
+          description: "..."
+          input:
+            param:
+              type: "..."
+              description: "..."
+          output:
+            ...
+      status: "兼容"
+      migration: "input → params，output → returns"
+
+    format_c:
+      name: "表格格式"
+      pattern: |
+        | 参数 | 类型 | 必填 | 说明 |
+        |------|------|------|------|
+      status: "兼容（适合概览）"
+      migration: "详细定义需补充 YAML 格式"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 执行规则
+  # ═══════════════════════════════════════════════════════════════
+  rules:
+    - "新增接口必须使用推荐格式"
+    - "params 必须标明 required: true/false"
+    - "returns 必须说明每个返回字段"
+    - "errors 应使用规则7定义的错误代码格式"
+    - "现有接口格式可继续使用，修改时升级"
+```
+
+### 规则 9：Verdict 结构标准 🆕 v3.9
+
+```yaml
+verdict_structure_standard:
+  name: "判定结果统一标准"
+  description: "所有 Agent 的验收/审核判定必须遵循统一的 Verdict 结构"
+
+  # ═══════════════════════════════════════════════════════════════
+  # Verdict 值定义
+  # ═══════════════════════════════════════════════════════════════
+  verdict_values:
+
+    # === 验收类 Verdict（Test Agent / Code Agent）===
+    acceptance_verdicts:
+      PASS:
+        meaning: "完全通过"
+        next_action: "进入下一阶段"
+        example: "Phase A 契约验收通过，进入 Phase B"
+
+      CONDITIONAL_PASS:
+        meaning: "有条件通过（有警告但不阻塞）"
+        next_action: "进入下一阶段，但携带警告"
+        requires:
+          - "warnings: 警告列表"
+        example: "Phase B 有轻微代码风格问题，警告后通过"
+
+      FAIL:
+        meaning: "不通过"
+        next_action: "打回上游修复"
+        requires:
+          - "reason: 失败原因"
+          - "blockers: 阻塞问题列表"
+        example: "编译失败，打回 Code Agent"
+
+      TIMEOUT:
+        meaning: "超时"
+        next_action: "中断并上报"
+        requires:
+          - "reason: 超时原因"
+          - "elapsed_time: 已用时间"
+        example: "测试执行超过30分钟"
+
+    # === 审核类 Verdict（Review Agent / 人工审核）===
+    review_verdicts:
+      APPROVED:
+        meaning: "审核通过"
+        next_action: "可交付/可合并"
+        example: "代码审查通过"
+
+      REJECTED:
+        meaning: "审核拒绝"
+        next_action: "打回修改"
+        requires:
+          - "reason: 拒绝原因"
+          - "comments: 审核意见"
+        example: "安全问题需修复"
+
+      NEEDS_REVISION:
+        meaning: "需要修订"
+        next_action: "小幅修改后重审"
+        requires:
+          - "comments: 修改建议"
+        example: "代码风格问题"
+
+    # === 反馈响应类（Agent 间通信）===
+    response_verdicts:
+      ACCEPTED:
+        meaning: "反馈已接受"
+        next_action: "执行修正"
+
+      PENDING_USER:
+        meaning: "等待用户确认"
+        next_action: "暂停，等待用户输入"
+
+      ESCALATED:
+        meaning: "问题升级"
+        next_action: "需用户重大决策"
+
+  # ═══════════════════════════════════════════════════════════════
+  # Verdict 结构格式
+  # ═══════════════════════════════════════════════════════════════
+  structure:
+    required_fields:
+      - "verdict: PASS | CONDITIONAL_PASS | FAIL | ..."
+      - "reason: 判定理由（非 PASS 时必填）"
+
+    optional_fields:
+      - "blockers: 阻塞问题列表"
+      - "warnings: 警告列表"
+      - "comments: 详细说明"
+      - "next_action: 下一步动作"
+      - "evidence: 判定依据"
+
+    example: |
+      verdict:
+        status: "CONDITIONAL_PASS"
+        reason: "代码风格有警告但不影响功能"
+        warnings:
+          - "函数命名不符合规范（3处）"
+          - "缺少部分注释"
+        blockers: []
+        evidence:
+          test_report: "test-output/report.md"
+          quality_score: 85
+
+  # ═══════════════════════════════════════════════════════════════
+  # 使用场景
+  # ═══════════════════════════════════════════════════════════════
+  usage_by_agent:
+    Test_Agent:
+      Phase_A: "PASS | FAIL"
+      Phase_B: "PASS | CONDITIONAL_PASS | FAIL"
+      batch_check: "PASS | FAIL"
+
+    Review_Agent:
+      code_review: "APPROVED | REJECTED | NEEDS_REVISION"
+      final_acceptance: "APPROVED | REJECTED"
+
+    Conductor_Agent:
+      stage_completion: "继承各阶段 verdict"
+      project_completion: "SUCCESS | PARTIAL | CANCELLED"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 执行规则
+  # ═══════════════════════════════════════════════════════════════
+  rules:
+    - "verdict 值必须使用大写 + 下划线格式"
+    - "非 PASS/APPROVED 的 verdict 必须包含 reason"
+    - "CONDITIONAL_PASS 必须包含 warnings 列表"
+    - "FAIL/REJECTED 必须包含 blockers 或 comments"
+    - "verdict 必须有对应的 next_action 定义"
+```
+
+### 规则 10：错误响应结构标准 🆕 v3.9
+
+```yaml
+error_response_standard:
+  name: "错误响应统一标准"
+  description: "所有接口的错误响应必须遵循统一格式"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 错误响应结构
+  # ═══════════════════════════════════════════════════════════════
+  structure:
+    required_fields:
+      code:
+        type: "string"
+        format: "规则7定义的错误代码格式"
+        description: "错误代码"
+
+      message:
+        type: "string"
+        description: "人类可读的错误信息"
+
+    optional_fields:
+      severity:
+        type: "CRITICAL | ERROR | WARNING | INFO"
+        description: "错误严重程度"
+
+      details:
+        type: "object | string"
+        description: "详细错误信息"
+
+      context:
+        type: "object"
+        description: "错误上下文（如文件、行号等）"
+
+      suggestion:
+        type: "string"
+        description: "修复建议"
+
+      recoverable:
+        type: "boolean"
+        description: "是否可恢复"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 标准格式示例
+  # ═══════════════════════════════════════════════════════════════
+  examples:
+
+    single_error: |
+      error:
+        code: "DA-E001"
+        message: "项目未初始化"
+        severity: "ERROR"
+        suggestion: "请先调用 init_project()"
+        recoverable: true
+
+    multiple_errors: |
+      errors:
+        - code: "CG-E002"
+          message: "类型定义不完整"
+          severity: "ERROR"
+          context:
+            file: "packages/shared/types/user.ts"
+            line: 15
+          details: "缺少必填字段 email"
+
+        - code: "CG-E003"
+          message: "签名不匹配"
+          severity: "WARNING"
+          context:
+            file: "packages/backend/services/userService.ts"
+            line: 42
+          details:
+            expected: "getUser(id: string): Promise<User>"
+            actual: "getUser(id: number): Promise<User>"
+
+    validation_errors: |
+      validation_result:
+        valid: false
+        errors:
+          - field: "project_name"
+            code: "E-001"
+            type: "missing"
+            message: "项目名称不能为空"
+
+          - field: "complexity"
+            code: "E-002"
+            type: "invalid_value"
+            message: "complexity 必须是 simple/medium/complex"
+            suggestion: "请检查拼写"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 错误分类
+  # ═══════════════════════════════════════════════════════════════
+  error_categories:
+    validation:
+      description: "输入验证错误"
+      common_codes:
+        - "missing: 必填字段缺失"
+        - "invalid_value: 值不合法"
+        - "type_mismatch: 类型不匹配"
+        - "format_error: 格式错误"
+
+    execution:
+      description: "执行错误"
+      common_codes:
+        - "not_found: 资源不存在"
+        - "permission_denied: 权限不足"
+        - "timeout: 超时"
+        - "dependency_error: 依赖错误"
+
+    system:
+      description: "系统错误"
+      common_codes:
+        - "internal_error: 内部错误"
+        - "service_unavailable: 服务不可用"
+        - "network_error: 网络错误"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 执行规则
+  # ═══════════════════════════════════════════════════════════════
+  rules:
+    - "错误响应必须包含 code 和 message"
+    - "code 必须遵循规则7的错误代码格式"
+    - "多个错误使用 errors 数组"
+    - "验证类错误应包含 field 字段"
+    - "执行类错误应包含 context 字段"
+    - "建议提供 suggestion 帮助修复"
 ```
 
 ---
@@ -338,7 +1009,7 @@ verification_layers:
   L1_编译验证: "tsc + eslint → 0 错误"
   L2_单元测试: "Jest/Vitest → 通过率 ≥ 80%"
   L3_集成测试: "API + 组件 → 核心流程 100%"
-  L4_质量检查: "钦天监 + 将作监 → 无严重问题"
+  L4_质量检查: "巡按御史 + 将作监 → 无严重问题"
   L5_规格符合: "对比 Tech Spec → 100% 符合"
 ```
 
@@ -378,7 +1049,7 @@ contract_vs_implementation:
 |-------|----------|------|
 | Code Agent | CA-01 ~ CA-21 | 21 |
 | Test Agent | TA-01 ~ TA-17 | 17 |
-| Spec Agent | SP-01 ~ SP-20 | 20 |
+| Spec Agent | SA-01 ~ SA-20 | 20 |
 | Review Agent | RA-01 ~ RA-15 | 15 |
 | Conductor Agent | CO-01 ~ CO-18 | 18 |
 | Plan Agent | PA-01 ~ PA-13 | 13 |
@@ -388,12 +1059,109 @@ contract_vs_implementation:
 | Skill | 铁律编号 | 数量 |
 |-------|----------|------|
 | 史官 | DA-01 ~ DA-12 | 12 |
-| 钦天监 | PS-01 ~ PS-04 | 4 |
+| 巡按御史 | PS-01 ~ PS-06 | 6 |
 | 将作监 | MP-01 ~ MP-06 | 6 |
 | 契约守卫 | CG-01 ~ CG-13 | 13 |
-| 钩子系统 | HK-01 ~ HK-04 | 4 |
+| 钩子系统 | HK-01 ~ HK-12 | 12 |
+| 验证执行官 | VX-01 ~ VX-10 | 10 |
+| 司礼监 | IS-01 ~ IS-04, ZJ/ZS/LB/XQ/CW/CJ/JJ/XC/XT | 40+ |
 
-### 6.4 铁律分层与优先级 🆕 v2.9
+### 6.4 铁律编号中央注册表 🆕 v3.10
+
+> 所有铁律编号前缀必须在此注册，防止冲突
+
+```yaml
+iron_law_prefix_registry:
+  description: "铁律编号前缀分配表（中央注册）"
+  last_updated: "2026-02-06"
+
+  # ═══════════════════════════════════════════════════════════════
+  # Agent 前缀（6个）
+  # ═══════════════════════════════════════════════════════════════
+  agent_prefixes:
+    CA: { owner: "Code Agent", range: "CA-01 ~ CA-21", count: 21 }
+    CO: { owner: "Conductor Agent", range: "CO-01 ~ CO-31", count: 31 }
+    PA: { owner: "Plan Agent", range: "PA-01 ~ PA-13", count: 13 }
+    RA: { owner: "Review Agent", range: "RA-01 ~ RA-15", count: 15 }
+    SA: { owner: "Spec Agent", range: "SA-01 ~ SA-20", count: 20 }
+    TA: { owner: "Test Agent", range: "TA-01 ~ TA-20", count: 20 }
+
+  # ═══════════════════════════════════════════════════════════════
+  # Core Skill 前缀（4个）
+  # ═══════════════════════════════════════════════════════════════
+  core_skill_prefixes:
+    CG: { owner: "Contract Guardian (契约守卫)", range: "CG-01 ~ CG-13", count: 13 }
+    DA: { owner: "Dialogue Archivist (史官)", range: "DA-01 ~ DA-25", count: 25 }
+    MP: { owner: "Module Planner (将作监)", range: "MP-01 ~ MP-06", count: 6 }
+    PS: { owner: "Project Scanner (巡按御史)", range: "PS-01 ~ PS-06", count: 6 }
+
+  # ═══════════════════════════════════════════════════════════════
+  # Coder Skill 前缀（5个）
+  # ═══════════════════════════════════════════════════════════════
+  coder_skill_prefixes:
+    BC: { owner: "Backend Coder", range: "BC-01 ~ BC-20", count: 20 }
+    DC: { owner: "Desktop Coder", range: "DC-01 ~ DC-13", count: 13 }
+    MC: { owner: "Mobile Coder", range: "MC-01 ~ MC-19", count: 19 }
+    SC: { owner: "Shared Coder", range: "SC-01 ~ SC-08", count: 8 }
+    WC: { owner: "Web Coder", range: "WC-01 ~ WC-20", count: 20 }
+
+  # ═══════════════════════════════════════════════════════════════
+  # Infrastructure Skill 前缀（3个）
+  # ═══════════════════════════════════════════════════════════════
+  infrastructure_prefixes:
+    HK: { owner: "Hooks System (内侍省)", range: "HK-01 ~ HK-12", count: 12 }
+    RI: { owner: "Runtime Inspector (亲验使)", range: "RI-01 ~ RI-06", count: 6 }
+    VX: { owner: "Verification Executor (督工御史)", range: "VX-01 ~ VX-10", count: 10 }
+
+  # ═══════════════════════════════════════════════════════════════
+  # Template/Validator Skill 前缀（3个）
+  # ═══════════════════════════════════════════════════════════════
+  template_validator_prefixes:
+    RT: { owner: "Requirement Template (采访使)", range: "RT-01 ~ RT-06", count: 6 }
+    ST: { owner: "Spec Template (典簿)", range: "ST-01 ~ ST-06", count: 6 }
+    TV: { owner: "Tech Validator (照磨)", range: "TV-01 ~ TV-08", count: 8 }
+
+  # ═══════════════════════════════════════════════════════════════
+  # Governance Skill 前缀（1个 + 多子类）
+  # ═══════════════════════════════════════════════════════════════
+  governance_prefixes:
+    IS: { owner: "Imperial Scribe (司礼监) - 审查", range: "IS-01 ~ IS-04", count: 4 }
+    ZJ: { owner: "Imperial Scribe - 直谏", range: "ZJ-01 ~ ZJ-05", count: 5 }
+    ZS: { owner: "Imperial Scribe - 自省", range: "ZS-01 ~ ZS-04", count: 4 }
+    LB: { owner: "Imperial Scribe - 利弊", range: "LB-01 ~ LB-03", count: 3 }
+    XQ: { owner: "Imperial Scribe - 需求", range: "XQ-01 ~ XQ-03", count: 3 }
+    CW: { owner: "Imperial Scribe - 错误", range: "CW-01 ~ CW-04", count: 4 }
+    CJ: { owner: "Imperial Scribe - 场景", range: "CJ-01 ~ CJ-04", count: 4 }
+    JJ: { owner: "Imperial Scribe - 紧急", range: "JJ-01 ~ JJ-04", count: 4 }
+    XC: { owner: "Imperial Scribe - 巡查", range: "XC-01 ~ XC-04", count: 4 }
+    XT: { owner: "Imperial Scribe - 协同", range: "XT-01 ~ XT-04", count: 4 }
+
+  # ═══════════════════════════════════════════════════════════════
+  # 全局前缀
+  # ═══════════════════════════════════════════════════════════════
+  global_prefixes:
+    CK: { owner: "全局 - 检查验证", range: "CK-01 ~ CK-03", count: 3 }
+    V: { owner: "全局 - 反虚报", range: "V-01 ~ V-03", count: 3 }
+    RL: { owner: "全局 - 红线铁律", range: "RL-01 ~ RL-07", count: 7 }
+
+  # ═══════════════════════════════════════════════════════════════
+  # 已废弃/保留前缀
+  # ═══════════════════════════════════════════════════════════════
+  deprecated_prefixes:
+    SP: { status: "废弃", reason: "已改为 SA (Spec Agent)", migration: "v2.3.5" }
+
+  # ═══════════════════════════════════════════════════════════════
+  # 新前缀申请规则
+  # ═══════════════════════════════════════════════════════════════
+  new_prefix_rules:
+    - "新增前缀必须先检查本注册表，确保不冲突"
+    - "前缀必须为 2-3 个大写字母"
+    - "Agent 前缀取 Agent 名首字母"
+    - "Skill 前缀取 Skill 名缩写"
+    - "新增后必须更新本注册表"
+```
+
+### 6.5 铁律分层与优先级 🆕 v2.9
 
 ```yaml
 iron_law_hierarchy:
@@ -459,7 +1227,7 @@ iron_law_hierarchy:
 
         - code: "RL-04"
           source: "R1"
-          rule: "扫描必须经由钦天监"
+          rule: "扫描必须经由巡按御史"
           consequence: "扫描结果不可信"
 
         - code: "RL-05"
@@ -489,7 +1257,7 @@ iron_law_hierarchy:
         - "CA-16: Phase A 必须等 Test Agent 验收"
         - "PA-03: 记录完整，调用史官存档"
         - "TA-05: 测试必须有断言"
-        - "SP-19: 重大技术决策必须有 ADR"
+        - "SA-19: 重大技术决策必须有 ADR"
 
     level_2_standard:
       name: "标准规则"
@@ -551,7 +1319,7 @@ iron_law_hierarchy:
     agent_startup:
       必检红线:
         - "RL-01: 不虚报"
-        - "RL-04: 扫描走钦天监"
+        - "RL-04: 扫描走巡按御史"
         - "RL-05: 记录走史官"
       建议检查:
         - "当前阶段的核心铁律"
@@ -620,58 +1388,161 @@ iron_law_hierarchy:
 | Layer 3 | 配置管理 | 环境变量、敏感信息 | FOUNDATION.md |
 | Layer 4 | 质量规范 | 测试、文档、代码风格 | FOUNDATION.md |
 
-### 7.3 地基强制规则
+### 7.3 项目档次 (Tier) 机制 🆕 v3.10
 
-```yaml
-规则_F1:
-  name: "项目必须有身份证"
-  rule: "所有项目必须包含 .orchestra/project.yaml"
+> 详见 FOUNDATION.md v1.1
 
-规则_F2:
-  name: "必须使用地基模块"
-  rule: "所有项目必须使用 Logger、ErrorKit、Config 地基模块"
+不同类型的项目有不同的规范要求，通过 **tier（档次）** 机制实现灵活配置：
 
-规则_F3:
-  name: "日志格式统一"
-  rule: "所有日志必须遵循 [时间][级别][模块][请求ID] 消息 格式"
-
-规则_F4:
-  name: "错误码统一"
-  rule: "所有错误必须使用 {模块码}{类型码}{序号} 格式"
-
-规则_F5:
-  name: "配置方式统一"
-  rule: "环境变量必须使用 {项目前缀}_{模块}_{配置项} 格式"
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         项目档次与规范要求                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Tier 1: Full (完整规范)                                             │   │
+│  │  适用: web-fullstack, service, mobile, desktop                       │   │
+│  │  要求: 完整的日志、错误码、测试(≥60%)、文档                          │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Tier 2: Standard (标准规范)                                         │   │
+│  │  适用: library, cli, web-frontend, web-backend                       │   │
+│  │  要求: 库(≥90%), CLI(≥40%), 简化错误码, README必须                   │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Tier 3: Minimal (最小规范)                                          │   │
+│  │  适用: script, prototype, data-analysis, experiment                  │   │
+│  │  要求: 基本日志, 测试(≥10-20%或关键路径), 简单说明即可               │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 7.4 地基检查清单
+#### 7.3.1 Tier 与地基层级关系
+
+| 层级 | Tier 1 (Full) | Tier 2 (Standard) | Tier 3 (Minimal) |
+|------|---------------|-------------------|------------------|
+| Layer 0 身份 | 完整 project.yaml | 完整 project.yaml | 简化版（仅 identity） |
+| Layer 1 可观测 | 完整(日志+追踪+健康检查) | 日志必须，追踪可选 | 基本日志即可 |
+| Layer 2 错误 | 完整 6 位错误码体系 | 简化模式（类型码） | 可不使用错误码 |
+| Layer 3 配置 | 完整 | 完整 | .env 即可 |
+| Layer 4 质量 | 覆盖率 ≥60%，完整文档 | 覆盖率按类型，README | 覆盖率 ≥10-20% |
+
+#### 7.3.2 Tier 推断规则
 
 ```yaml
-项目合规检查:
-  Layer_0:
-    - ".orchestra/ 目录存在"
-    - "project.yaml 格式正确"
-    - "所有必填字段已填写"
+tier_inference:
+  rule: "根据 project.yaml 中的 type 字段自动推断 tier"
+  mapping:
+    tier_1: [web-fullstack, service, mobile, desktop]
+    tier_2: [library, cli, web-frontend, web-backend]
+    tier_3: [script, prototype, data-analysis, experiment]
+  override: "可在 project.yaml 中显式指定 tier 覆盖自动推断"
+```
 
+### 7.4 地基强制规则（按 Tier）
+
+```yaml
+# 所有 Tier 必须遵守的固定核心
+固定核心:
+  F1: ".orchestra/ 目录存在"
+  F2: "project.yaml 包含 identity 字段"
+  F3: "日志必须包含 timestamp, level, message"
+  F4: ".env.example 存在（Tier 3 可选）"
+  F5: "README.md 存在"
+
+# 按 Tier 调整的规则
+规则_F6:
+  name: "日志格式要求"
+  tier_1: "[时间][级别][模块][请求ID] 消息（完整格式）"
+  tier_2: "[时间][级别] 消息（标准格式）"
+  tier_3: "级别: 消息（简化格式）"
+
+规则_F7:
+  name: "错误码模式"
+  tier_1: "完整 6 位错误码（{模块码}{类型码}{序号}）"
+  tier_2: "简化模式（语义化字符串如 NOT_FOUND）"
+  tier_3: "可选（直接使用 HTTP 状态码）"
+
+规则_F8:
+  name: "测试覆盖率"
+  tier_1: "≥ 60%（按项目类型可达 70%+）"
+  tier_2: "按项目类型：library ≥90%, cli ≥40%, web ≥50-60%"
+  tier_3: "≥ 10-20% 或关键路径测试"
+  ref: "详见 FOUNDATION.md 4.2.3 覆盖率要求"
+
+规则_F9:
+  name: "文档要求"
+  tier_1: "README + API文档 + CHANGELOG"
+  tier_2: "README 必须"
+  tier_3: "简单说明（README 几行即可）"
+```
+
+### 7.5 地基检查清单（按 Tier）
+
+```yaml
+# 所有 Tier 通用检查（固定核心）
+通用检查:
+  - ".orchestra/ 目录存在"
+  - "project.yaml 存在且 identity 字段完整"
+  - "README.md 存在"
+  - ".gitignore 包含 .env"
+
+# Tier 1 (Full) 检查清单
+Tier_1_检查:
+  Layer_0:
+    - "project.yaml 所有字段完整"
+    - "timeline.md 存在"
   Layer_1:
     - "使用 @orchestra/logger"
-    - "日志格式符合规范"
+    - "日志格式：[时间][级别][模块][请求ID] 消息"
     - "Request ID 机制已实现"
-
+    - "健康检查端点存在 (GET /health)"
   Layer_2:
     - "使用 @orchestra/error-kit"
-    - "错误码遵循规范"
+    - "错误码遵循 6 位格式"
     - "错误响应格式统一"
-
   Layer_3:
     - ".env.example 存在"
     - "敏感信息未提交到 git"
     - "环境变量命名规范"
-
   Layer_4:
-    - "README.md 包含必要章节"
-    - "测试覆盖率 ≥ 60%"
-    - "Linter 配置存在"
+    - "测试覆盖率 ≥ 60%（或按项目类型要求）"
+    - "README + API文档 + CHANGELOG"
+    - "Linter + Formatter 配置存在"
+
+# Tier 2 (Standard) 检查清单
+Tier_2_检查:
+  Layer_0:
+    - "project.yaml identity 和 tech_stack 完整"
+  Layer_1:
+    - "日志格式：[时间][级别] 消息"
+    - "Request ID 推荐"
+  Layer_2:
+    - "错误码可用简化模式（语义化字符串）"
+  Layer_3:
+    - ".env.example 存在"
+  Layer_4:
+    - "测试覆盖率按类型：library ≥90%, cli ≥40%, web ≥50-60%"
+    - "README 必须"
+    - "Linter 推荐"
+
+# Tier 3 (Minimal) 检查清单
+Tier_3_检查:
+  Layer_0:
+    - "project.yaml identity 基本字段"
+  Layer_1:
+    - "基本日志（console.log 也行）"
+  Layer_2:
+    - "可不使用错误码体系"
+  Layer_3:
+    - ".env 即可"
+  Layer_4:
+    - "测试覆盖率 ≥ 10-20% 或关键路径有测试"
+    - "简单说明即可"
+    - "Linter 不强制"
 ```
 
 ---
@@ -753,13 +1624,298 @@ orchestra/
 
 ---
 
-## 九、版本历史
+## 九、Skill 调用通用协议 🆕 v3.3
+
+> 适用于所有 6 个 Agent。各 Agent 的 Skill 调用必须遵循本协议。
+
+### 9.1 错误处理协议（E-01）
+
+```yaml
+skill_call_error_handling:
+
+  description: |
+    所有 Agent 调用 Skill 接口时，必须处理失败情况。
+    禁止假设 Skill 调用一定成功。
+
+  protocol:
+    # 每次 Skill 调用的标准包装
+    standard_call_pattern: |
+      result = skill.interface(params)
+      if result.status == "error":
+        # 1. 记录失败事件
+        record_event(session_id, {
+          event_type: "skill_call_failed",
+          details: {
+            skill: "{skill_name}",
+            interface: "{interface_name}",
+            error: result.error,
+            params_snapshot: params
+          }
+        })
+        # 2. 根据严重程度处理
+        if is_critical(interface):
+          # 关键接口（handshake/register_stage/complete_stage）：阻断并上报
+          HALT_AND_REPORT(error)
+        else:
+          # 非关键接口：重试一次，仍失败则上报
+          retry_result = skill.interface(params)
+          if retry_result.status == "error":
+            REPORT_TO_USER(error)
+
+  critical_interfaces:
+    dialogue-archivist:
+      - handshake
+      - register_stage
+      - complete_stage
+      - archive
+    project-scanner:
+      - scan_project
+      - scan_code_quality
+    contract-guardian:
+      - parse_tech_spec
+      - lock_snapshot
+      - get_contract_status
+```
+
+### 9.2 事件ID捕获协议（E-02）
+
+```yaml
+event_id_capture:
+
+  description: |
+    record_event() 返回 event_id，必须捕获并存储。
+    event_id 用于事件链追溯和审计。
+
+  protocol: |
+    # 正确写法
+    event_result = record_event(session_id, { event_type: "...", details: {...} })
+    current_event_id = event_result.event_id    # 必须捕获
+    # 可选：关联到当前步骤的上下文
+    step_context.event_ids.append(current_event_id)
+
+  usage:
+    - "完成声明中引用 event_id 作为证据"
+    - "后续事件通过 previous_event_id 建立链接"
+    - "审计时通过 event_id 追溯操作历史"
+
+  anti_pattern: |
+    # 错误写法（丢弃返回值）
+    record_event(session_id, { event_type: "...", details: {...} })
+    # ← event_id 未捕获，无法追溯
+```
+
+### 9.3 事件记录链协议（E-03）
+
+```yaml
+event_chain:
+
+  description: |
+    每个 Agent 的生命周期必须有完整的事件记录链：
+    启动 → 关键操作 → 关键决策 → 完成/失败
+
+  mandatory_events:
+
+    # === 所有 Agent 通用 ===
+    startup:
+      - event_type: "agent_startup"
+        timing: "handshake 完成后"
+        details: { agent_id, project_id, stage, handshake_id }
+
+    key_operations:
+      - event_type: "{operation}_start"
+        timing: "重要操作开始时"
+      - event_type: "{operation}_complete"
+        timing: "重要操作完成时"
+        details: { result_summary, duration }
+
+    key_decisions:
+      - event_type: "decision_made"
+        timing: "做出重要决策时"
+        details: { decision_type, chosen_option, rationale }
+
+    shutdown:
+      - event_type: "agent_shutdown"
+        timing: "archive/complete_stage 之前"
+        details: { summary, total_events_recorded }
+
+  chain_rule: |
+    startup → operation_1_start → operation_1_complete →
+    ... → decision_1 → ... →
+    agent_shutdown → archive → complete_stage
+
+  validation: |
+    完整性检查：
+    - 有 agent_startup 事件
+    - 有 agent_shutdown 事件
+    - startup 和 shutdown 之间有操作/决策事件
+    - 无"断链"（时间线上无大段空白）
+```
+
+### 9.4 错误码体系集成指南 🆕 v3.11
+
+> 永乐大典存在两套错误码体系，分别服务不同层级，本节说明其关系与协作方式。
+
+#### 9.4.1 两套体系对照
+
+| 体系 | 适用层级 | 格式 | 用途 |
+|------|----------|------|------|
+| **Orchestra 体系** | Agent/Skill 内部 | E-NNN, FB-XXX-YYY-NN | 流程错误、Agent 间反馈 |
+| **项目体系** | 面向用户 API | 6 位数字 / 语义化字符串 | 业务错误响应 |
+
+#### 9.4.2 Orchestra 体系详解
+
+```yaml
+orchestra_error_codes:
+
+  # 系统级通用错误（E-NNN）
+  E-series:
+    format: "E-{三位数字}"
+    range: "E-001 ~ E-099"
+    用途: "Agent/Skill 执行过程中的系统级问题"
+    示例:
+      E-001: "Skill 调用失败"
+      E-002: "Agent 交接失败"
+      E-003: "用户无响应超时"
+      E-004: "契约验证失败"
+      E-005: "验证执行超时"
+
+  # Agent 间反馈代码（FB-系列）
+  FB-series:
+    format: "FB-{SOURCE}-{TARGET}-{两位数字}"
+    用途: "Agent 打回或反馈另一 Agent 的问题"
+    SOURCE: "发现问题的 Agent（TEST/REVIEW/SPEC）"
+    TARGET: "问题来源 Agent（CODE/SPEC/PLAN）"
+    示例:
+      FB-TEST-CODE-01: "编译失败"
+      FB-TEST-CODE-02: "类型定义不完整"
+      FB-REVIEW-CODE-01: "代码质量问题"
+      FB-SPEC-PLAN-01: "需求不完整"
+
+  # Skill 级错误（PREFIX-ENNN）
+  Skill-series:
+    format: "{SKILL_PREFIX}-E{三位数字}"
+    用途: "特定 Skill 的内部错误"
+    示例:
+      DA-E001: "史官 session 不存在"
+      CG-E001: "契约守卫快照不存在"
+      VE-E001: "验证执行器超时"
+```
+
+#### 9.4.3 项目体系详解
+
+```yaml
+project_error_codes:
+
+  # 完整模式（Tier 1 必须）
+  full_mode:
+    format: "{模块码 2位}{类型码 1位}{序号 3位}"
+    示例: "204001"  # 业务模块 + 资源不存在 + 第001号
+    模块码:
+      00: "System（系统级）"
+      10: "User（用户认证）"
+      20: "Business（业务逻辑）"
+      30: "Data（数据存储）"
+      40: "External（外部服务）"
+    类型码:
+      1: "Param（参数错误）"
+      3: "Auth（权限错误）"
+      4: "NotFound（资源不存在）"
+      8: "Internal（内部错误）"
+
+  # 简化模式（Tier 2/3 可选）
+  simple_mode:
+    format: "语义化字符串"
+    示例: ["NOT_FOUND", "PARAM_ERROR", "UNAUTHORIZED"]
+    用途: "小型项目无需完整错误码表时使用"
+```
+
+#### 9.4.4 协作关系
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     两套错误码体系协作模型                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  用户发起请求                                                               │
+│       │                                                                     │
+│       ▼                                                                     │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │                    API 层（面向用户）                                  │  │
+│  │  使用 项目体系 错误码（6位数字 / 简化模式）                            │  │
+│  │  示例：{ "code": "204001", "message": "订单不存在" }                   │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                    │                                        │
+│                                    ▼                                        │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │                  Orchestra 工作流层（Agent 间协作）                    │  │
+│  │  使用 Orchestra 体系 错误码                                            │  │
+│  │  E-NNN: Skill 调用失败、交接失败                                       │  │
+│  │  FB-XXX-YYY-NN: Agent 间打回反馈                                       │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                    │                                        │
+│                                    ▼                                        │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │                     Skill 层（内部实现）                               │  │
+│  │  使用 Skill 级错误码 PREFIX-ENNN                                       │  │
+│  │  示例：DA-E001（史官 session 不存在）                                  │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 9.4.5 使用规则
+
+```yaml
+规则_EC1:
+  name: "层级分离"
+  rule: "Orchestra 体系错误码不应暴露给终端用户，仅用于内部日志和 Agent 交接"
+
+规则_EC2:
+  name: "错误转换"
+  rule: "API 层必须将内部错误转换为项目体系错误码再返回用户"
+  示例: |
+    # 内部记录
+    log.error("E-001 Skill调用失败", { skill: "contract-guardian", reason: "..." })
+    # 用户响应
+    return { code: "008001", message: "系统繁忙，请稍后重试" }
+
+规则_EC3:
+  name: "反馈码流转"
+  rule: "FB-系列错误码用于 Agent 间协作，最终由 Conductor 路由处理"
+  流程: |
+    1. Test Agent 发现问题 → 生成 FB-TEST-CODE-01
+    2. 调用 record_downstream_feedback() 记录
+    3. Conductor 接收反馈 → 路由到 Code Agent
+    4. Code Agent 根据 FB 码确定修复策略
+
+规则_EC4:
+  name: "Tier 适配"
+  rule: "项目体系错误码模式由 project.yaml 中的 tier 决定"
+  tier_1: "必须使用完整 6 位错误码"
+  tier_2: "可使用简化模式"
+  tier_3: "可直接使用 HTTP 状态码"
+```
+
+---
+
+## 十、版本历史
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
+| v3.11 | 2026-02-06 | 🔧 遗留问题修复：(1) 7.3 新增 Tier 机制集成，7.4~7.5 按 Tier 区分规则和检查清单；(2) 统一测试覆盖率标准（test-agent、backend-coder、shared-coder）；(3) 新增 9.4 错误码体系集成指南（两套体系协作规则） |
+| v3.10 | 2026-02-06 | 🔧 永乐大典体系检查修复：(1) verification-executor v1.1 补充 5 个缺失接口；(2) 司礼监审查铁律 SC→IS 重命名避免冲突；(3) 新增 6.4 铁律编号中央注册表 |
+| v3.9 | 2026-02-06 | 🔧 永乐大典统一标准 Phase 3：(1) 接口定义格式标准（规则8：params/returns/errors/example）；(2) Verdict 结构标准（规则9：PASS/FAIL/CONDITIONAL_PASS 等）；(3) 错误响应结构标准（规则10：code/message/severity/suggestion） |
+| v3.8 | 2026-02-06 | 🔧 永乐大典统一标准 Phase 2：(1) 报告 Header 格式标准（规则6）；(2) 错误代码格式标准（规则7：E-NNN系统级 + FB-SOURCE-TARGET-NN反馈 + PREFIX-ENNN Skill级） |
+| v3.7 | 2026-02-06 | 🔧 永乐大典统一标准：(1) 铁律编号 SP→SA（Spec Agent 20处）；(2) 字段名统一 violation（8文件114处）；(3) 📌目录添加（15个文件）；(4) 版本历史标题统一；(5) Skill 章节编号统一（133处）；(6) 证据格式标准制定（规则5：推荐格式+兼容格式）；版本升级：Spec Agent v2.3.5 |
+| v3.6 | 2026-02-06 | 🔧 确定性目标演进同步：Plan Agent 新增 scoped_goal（范围版目标 stage_2）、Spec Agent 新增 acceptance_goal（验收版目标 stage_3）、Conductor 交接协议更新（plan_to_spec + test_to_review）、requirement-template 新增 scoped_goal 草案生成、spec-template 新增 acceptance_goal 模板；版本升级：Plan v2.7.5、Spec v2.3.4、Conductor v1.8.6、requirement-template v1.8、spec-template v2.1 |
+| v3.5 | 2026-02-05 | 🆕 确定性目标完整机制：司礼监目标演进模型（拟旨→Plan细化→Spec细化→皇上确认→交接Review）、介入规则（召唤+自动）、随机抽查、最低/最高目标分层、技术限制禀报；Review 必须追求最高目标+技术限制上报；Conductor 自动化模式（甲/乙/丙）；版本升级：Conductor v1.8.5、Review v2.5.4、imperial-scribe v2.6 |
+| v3.4 | 2026-02-03 | 🔧 端到端流水线修复（Phase 4，11 issues）：5 Agent 版本升级（Conductor v1.8.4、Test v2.6.4、Code v2.0.4、Plan v2.7.4、Review v2.5.3）；P0 状态机/幽灵接口/参数对齐、P1 stage name/rollback/receive_codes、P2 test_phase metadata/契约缺陷流程 |
+| v3.3 | 2026-02-03 | 🔧 Agent→Skill 调用逻辑修复（Phase 3，13项具体修复 + 3项系统性修复）：新增第九章 Skill 调用通用协议（错误处理/event_id 捕获/事件记录链）；6 Agent 版本升级（Code v2.0.3、Test v2.6.3、Review v2.5.2、Plan v2.7.3、Spec v2.3.3、Conductor v1.8.3） |
+| v3.2 | 2026-02-03 | 🔧 交接流程闭环修复（19 处）：6 Agent 版本升级（Conductor v1.8.2、Plan v2.7.2、Spec v2.3.2、Code v2.0.2、Test v2.6.2、Review v2.5.1）；修复 evidence_requirements、startup handshake 流程、交接物清单对齐、幽灵调用消除、Conductor 交接定义细化、场景流程补完（contract_change_decision + batch_handoff_protocol） |
+| v3.1 | 2026-02-03 | 🔧 全局版本同步：所有 Agent（6个）和 Skill（17个）版本号对齐实际文件版本；新增 verification-executor（督工御史 v1.0）和 imperial-scribe（司礼监 v2.5）到组件总览；hooks-system 别名更正为内侍省；三场景表补充 Review 阶段 |
 | v3.0 | 2026-01-25 | **重大更新**：新增地基架构（FOUNDATION.md）和模块化架构（MODULES.md），定义统一地基五层规范、地基模块、业务模块、项目模板体系 |
 | v2.9 | 2026-01-25 | 新增铁律分层机制：红线铁律（7条）、核心铁律、标准规则、建议实践四层，冲突解决规则，执行检查清单 |
-| v2.8 | 2026-01-25 | 融合完成：Plan Agent v2.3（PA-13）、Spec Agent v1.9（SP-16~20）、Code Agent v1.8（CA-21），铁律总数更新为 110 条 |
+| v2.8 | 2026-01-25 | 融合完成：Plan Agent v2.3（PA-13）、Spec Agent v1.9（SA-16~20）、Code Agent v1.8（CA-21），铁律总数更新为 110 条 |
 | v2.7 | 2026-01-25 | Review Agent v2.0：融合 Security Reviewer + Code Reviewer，新增 D6 性能维度、OWASP Top 10 完整覆盖、安全工具规范、紧急响应流程，铁律增至 15 条（RA-13~15） |
 | v2.6 | 2026-01-25 | Test Agent v2.0：融合 Verification Loop + TDD + Eval Harness，铁律增至 17 条，铁律总数更新为 98 条 |
 | v2.5 | 2026-01-24 | 新增 hooks-system 基础设施层、史官铁律增至 12 条、铁律总数更新为 95 条 |
@@ -774,4 +1930,4 @@ orchestra/
 
 ---
 
-**🏛️ Orchestra / 永乐大典 架构规范 v3.0 · 完**
+**🏛️ Orchestra / 永乐大典 架构规范 v3.8 · 完**

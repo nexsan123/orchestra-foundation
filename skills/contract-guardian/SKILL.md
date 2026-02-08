@@ -11,12 +11,15 @@ description: |
 # 🛡️ 契约守卫（大理寺丞）
 
 > Orchestra 体系 · Test Agent 专属辅助 Skill
-> 版本：v1.5
+> 版本：v1.8
 > ⚠️ **契约验证唯一入口** - 所有契约检查必须通过此 Skill 进行
+> 🆕 v1.8：新增 unlock_snapshot（解锁快照）、calculate_hash（计算契约哈希）、verify_snapshot_valid（验证快照有效性）
+> v1.7：新增 lock_snapshot 接口（正式锁定快照，用于 Phase B 对比基准）
+> v1.6：添加调用证据要求、GraphQL/RPC 契约支持、巡按御史对接、场景差异化验证
 
 ---
 
-## 🔴 强制架构规则
+## 一、强制架构规则
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -71,7 +74,7 @@ description: |
 
 ---
 
-## 🎯 核心定位
+## 二、核心定位
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -96,6 +99,7 @@ description: |
 │  【服务对象】                                                   │
 │  主要：Test Agent                                              │
 │  次要：Spec Agent（可用于验证设计）                            │
+│  辅助：Review Agent（可选调用 compare_with_snapshot 对比契约） │
 │                                                                 │
 │  【禁止行为】                                                   │
 │  ❌ 不可修改契约内容                                           │
@@ -110,19 +114,133 @@ description: |
 
 ## 📌 目录
 
-1. [核心接口](#一核心接口)
-2. [接口详细定义](#二接口详细定义)
-3. [契约提取规则](#三契约提取规则)
-4. [快照存储格式](#四快照存储格式)
-5. [验证规则](#五验证规则)
-6. [与 Test Agent 协作](#六与-test-agent-协作)
-7. [与史官对接](#七与史官对接)
-8. [铁律清单](#八铁律清单)
-9. [错误处理](#九错误处理)
+1. [一、强制架构规则](#一强制架构规则)
+2. [二、核心定位](#二核心定位)
+3. [三、调用证据要求](#三调用证据要求)
+4. [四、核心接口](#四核心接口)
+5. [五、接口详细定义](#五接口详细定义)
+6. [六、契约提取规则](#六契约提取规则)
+7. [七、快照存储格式](#七快照存储格式)
+8. [八、验证规则](#八验证规则)
+9. [九、变更请求机制](#九变更请求机制)
+10. [十、与 Test Agent 协作](#十与-test-agent-协作)
+11. [十一、与史官对接](#十一与史官对接)
+12. [十二、与巡按御史对接](#十二与巡按御史对接)
+13. [十三、铁律清单](#十三铁律清单)
+14. [十四、错误处理](#十四错误处理)
+15. [十五、版本历史](#十五版本历史)
 
 ---
 
-## 一、核心接口
+## 三、调用证据要求
+
+```yaml
+# ════════════════════════════════════════════════════════════════════════════
+#  每个核心接口的调用证据要求
+# ════════════════════════════════════════════════════════════════════════════
+
+# ========== 提取类接口 ==========
+
+extract_contracts:
+  必须返回: "完整契约清单"
+  证据:
+    contracts: "types/interfaces/functions/api_routes/enums 五类清单"
+    summary: "各类数量统计"
+    extraction_log: "提取过程日志（扫描了哪些文件）"
+    api_style: "REST | GraphQL | RPC（标注 API 风格）"
+
+parse_tech_spec:
+  必须返回: "Spec 中定义的契约清单"
+  证据:
+    spec_contracts: "从 Spec 解析出的契约"
+    parse_warnings: "解析过程中的警告（如格式问题）"
+
+# ========== 快照类接口 ==========
+
+create_snapshot:
+  必须返回: "快照创建凭证"
+  证据:
+    snapshot_id: "唯一快照 ID"
+    hash: "快照内容哈希（用于防篡改验证）"
+    version: "快照版本号"
+    archived_at: "史官存档时间戳"
+
+get_snapshot:
+  必须返回: "快照内容"
+  证据:
+    content: "完整快照内容"
+    hash_verified: "哈希验证结果（true/false）"
+
+compare_snapshots:
+  必须返回: "两快照差异"
+  证据:
+    diff: "added/removed/modified 三类列表"
+    impact_summary: "影响摘要"
+
+# ========== 验证类接口 ==========
+
+verify_completeness:
+  必须返回: "覆盖率验证结果"
+  证据:
+    coverage: "覆盖百分比"
+    covered: "已覆盖项清单"
+    uncovered: "未覆盖项清单（含位置信息）"
+
+verify_consistency:
+  必须返回: "一致性验证结果"
+  证据:
+    consistent: "true/false"
+    inconsistencies: "不一致项清单（含 Spec 定义 vs 代码实现的对比）"
+
+# ========== 对比类接口 ==========
+
+compare_with_snapshot:
+  必须返回: "当前代码与快照的对比结果"
+  证据:
+    changes: "added/removed/modified 三类列表"
+    breaking_changes: "破坏性变更标记"
+
+detect_violations:
+  必须返回: "契约违规检测结果"
+  证据:
+    violations: "违规列表"
+    severity_breakdown: "按严重程度分类（critical/warning）"
+
+# ========== 变更类接口 ==========
+
+request_contract_change:
+  必须返回: "变更请求凭证"
+  证据:
+    change_request_id: "变更请求 ID"
+    expires_at: "过期时间"
+
+analyze_change_impact:
+  必须返回: "影响分析报告"
+  证据:
+    affected_modules: "受影响模块列表"
+    affected_tests: "受影响测试列表"
+    breaking: "是否为破坏性变更"
+
+approve_contract_change:
+  必须返回: "批准凭证"
+  证据:
+    new_snapshot_id: "新快照 ID"
+    approved_by: "批准者"
+    approved_at: "批准时间"
+
+# ========== 报告类接口 ==========
+
+generate_contract_report:
+  必须返回: "契约报告"
+  证据:
+    report_content: "报告内容"
+    generated_at: "生成时间"
+    contract_count: "各类契约数量"
+```
+
+---
+
+## 四、核心接口
 
 ```yaml
 contract_guardian_interfaces:
@@ -145,7 +263,31 @@ contract_guardian_interfaces:
     功能: "创建契约快照并存入史官档案"
     输入: "代码目录 + 项目 ID"
     输出: "快照 ID + 快照内容"
-    
+
+  lock_snapshot:                             # 🆕 v1.7
+    功能: "正式锁定快照，禁止后续修改"
+    输入: "快照 ID + 锁定原因"
+    输出: "锁定确认 + 锁定时间戳"
+    说明: "锁定后的快照用于 Phase B 对比基准"
+
+  unlock_snapshot:                           # 🆕 v1.8
+    功能: "解锁已锁定的快照（需皇上授权）"
+    输入: "快照 ID + 解锁原因 + 授权者"
+    输出: "解锁确认"
+    说明: "仅用于紧急契约变更场景，需完整记录"
+
+  calculate_hash:                            # 🆕 v1.8
+    功能: "计算当前代码契约的哈希值"
+    输入: "代码目录"
+    输出: "哈希值（SHA256）"
+    说明: "用于快速对比契约是否变化"
+
+  verify_snapshot_valid:                     # 🆕 v1.8
+    功能: "验证快照是否仍然有效"
+    输入: "快照 ID"
+    输出: "有效性状态 + 原因"
+    说明: "检查快照是否过期、被篡改或已失效"
+
   get_snapshot:
     功能: "获取已存储的契约快照"
     输入: "快照 ID"
@@ -260,7 +402,7 @@ contract_guardian_interfaces:
 
 ---
 
-## 二、接口详细定义
+## 五、接口详细定义
 
 ### 2.1 extract_contracts - 提取契约
 
@@ -465,7 +607,238 @@ create_snapshot:
     console.log(result.snapshot_id); // "snap_20260123_143052_abc123"
 ```
 
-### 2.4 compare_with_snapshot - 对比快照
+### 2.4 lock_snapshot - 锁定快照 🆕 v1.7
+
+```yaml
+lock_snapshot:
+
+  description: "正式锁定已创建的快照，作为 Phase B 对比基准"
+
+  说明: |
+    create_snapshot 仅创建快照但不锁定。
+    需要皇上确认后，调用 lock_snapshot 正式锁定。
+    锁定后的快照不可修改、不可删除，用于 Phase B 对比。
+
+  input:
+    snapshot_id:
+      type: "string"
+      description: "要锁定的快照 ID"
+      example: "snap_20260123_143052_abc123"
+
+    reason:
+      type: "string"
+      description: "锁定原因"
+      default: "phase_a_contract_approved"
+      example: "皇上确认 Phase A 契约层完成"
+
+    locked_by:
+      type: "string"
+      description: "锁定发起者"
+      example: "user"
+
+  output:
+    success:
+      type: "boolean"
+      description: "锁定是否成功"
+
+    locked_at:
+      type: "string"
+      description: "锁定时间戳"
+      example: "2026-01-23T15:00:00Z"
+
+    lock_hash:
+      type: "string"
+      description: "锁定时的内容哈希（防篡改凭证）"
+      example: "sha256:abcd1234..."
+
+    error:
+      type: "string | null"
+      description: "错误信息（如快照不存在、已被锁定等）"
+
+  behavior:
+    - "检查 snapshot_id 是否存在"
+    - "检查快照是否已被锁定（已锁定则拒绝）"
+    - "设置 locked: true 标记"
+    - "记录 locked_at、locked_by、lock_reason"
+    - "调用 dialogue-archivist.record_event('contract_locked', {...})"
+    - "返回锁定确认"
+
+  error_cases:
+    snapshot_not_found:
+      condition: "snapshot_id 不存在"
+      response: "{ success: false, error: 'SNAPSHOT_NOT_FOUND' }"
+    already_locked:
+      condition: "快照已被锁定"
+      response: "{ success: false, error: 'ALREADY_LOCKED', locked_at: '...' }"
+
+  example_call: |
+    const result = await contractGuardian.lock_snapshot({
+      snapshot_id: "snap_20260123_143052_abc123",
+      reason: "皇上确认 Phase A 契约层完成",
+      locked_by: "user"
+    });
+
+    if (result.success) {
+      console.log(`契约已锁定于 ${result.locked_at}`);
+    } else {
+      console.error(`锁定失败: ${result.error}`);
+    }
+```
+
+### 2.4.1 unlock_snapshot - 解锁快照 🆕 v1.8
+
+```yaml
+unlock_snapshot:
+
+  description: "解锁已锁定的快照（需皇上授权，仅用于紧急契约变更）"
+
+  说明: |
+    锁定的快照通常不应解锁。此接口仅用于：
+    1. 发现契约有严重问题需要修改
+    2. 皇上明确授权解锁
+    解锁后必须重新走 Phase A 验收流程。
+
+  input:
+    snapshot_id:
+      type: "string"
+      description: "要解锁的快照 ID"
+
+    reason:
+      type: "string"
+      description: "解锁原因（必须详细说明）"
+      example: "发现 API 签名设计缺陷，需要修改"
+
+    authorized_by:
+      type: "string"
+      description: "授权者（必须是皇上）"
+      example: "user"
+
+  output:
+    success:
+      type: "boolean"
+      description: "解锁是否成功"
+
+    unlocked_at:
+      type: "string"
+      description: "解锁时间戳"
+
+    warning:
+      type: "string"
+      description: "警告信息"
+      example: "⚠️ 快照已解锁，需重新执行 Phase A 验收"
+
+  behavior:
+    - "检查 snapshot_id 是否存在且已锁定"
+    - "验证 authorized_by 是否为 user（皇上）"
+    - "设置 locked: false"
+    - "记录解锁原因和授权者"
+    - "调用史官 record_event('contract_unlocked', {...})"
+    - "返回警告：需重新走 Phase A"
+
+  error_cases:
+    not_locked:
+      condition: "快照未锁定"
+      response: "{ success: false, error: 'NOT_LOCKED' }"
+    unauthorized:
+      condition: "非皇上授权"
+      response: "{ success: false, error: 'UNAUTHORIZED' }"
+```
+
+### 2.4.2 calculate_hash - 计算契约哈希 🆕 v1.8
+
+```yaml
+calculate_hash:
+
+  description: "计算当前代码契约的哈希值，用于快速对比"
+
+  input:
+    code_dir:
+      type: "string"
+      description: "代码根目录"
+
+  output:
+    hash:
+      type: "string"
+      description: "SHA256 哈希值"
+      example: "sha256:a1b2c3d4e5f6..."
+
+    calculated_at:
+      type: "string"
+      description: "计算时间"
+
+    files_included:
+      type: "array"
+      description: "纳入计算的文件列表"
+
+  behavior:
+    - "扫描契约相关文件（types/, interfaces/, *.d.ts）"
+    - "按文件路径排序（确保一致性）"
+    - "计算所有文件内容的 SHA256"
+    - "返回哈希值"
+
+  example_call: |
+    const result = await contractGuardian.calculate_hash({
+      code_dir: "./packages"
+    });
+
+    console.log(result.hash);  // "sha256:a1b2c3d4..."
+```
+
+### 2.4.3 verify_snapshot_valid - 验证快照有效性 🆕 v1.8
+
+```yaml
+verify_snapshot_valid:
+
+  description: "验证快照是否仍然有效（未过期、未篡改、未失效）"
+
+  input:
+    snapshot_id:
+      type: "string"
+      description: "快照 ID"
+
+  output:
+    valid:
+      type: "boolean"
+      description: "是否有效"
+
+    status:
+      type: "string"
+      enum: ["VALID", "EXPIRED", "TAMPERED", "UNLOCKED", "NOT_FOUND"]
+      description: "状态"
+
+    reason:
+      type: "string"
+      description: "状态原因"
+
+    details:
+      type: "object"
+      description: "详细信息"
+      properties:
+        created_at: "创建时间"
+        locked_at: "锁定时间"
+        expires_at: "过期时间（如有）"
+        current_hash: "当前哈希（用于检测篡改）"
+
+  behavior:
+    - "检查快照是否存在"
+    - "检查快照是否已锁定"
+    - "检查快照是否过期（默认不过期）"
+    - "重新计算哈希对比（检测篡改）"
+    - "返回综合状态"
+
+  example_call: |
+    const result = await contractGuardian.verify_snapshot_valid({
+      snapshot_id: "snap_20260123_143052_abc123"
+    });
+
+    if (result.valid) {
+      console.log("快照有效");
+    } else {
+      console.log(`快照无效: ${result.status} - ${result.reason}`);
+    }
+```
+
+### 2.5 compare_with_snapshot - 对比快照
 
 ```yaml
 compare_with_snapshot:
@@ -1495,7 +1868,7 @@ get_pending_changes:
 
 ---
 
-## 三、契约提取规则
+## 六、契约提取规则
 
 ### 3.1 什么算契约
 
@@ -1583,9 +1956,152 @@ export async function getUser(id: string): Promise<User> {  // ✅ 提取：函�
 }
 ```
 
+### 3.3 GraphQL 契约提取 🆕 v1.6
+
+```yaml
+graphql_contract_extraction:
+
+  包含:
+    types:
+      - "type 定义"
+      - "input 定义"
+      - "enum 定义"
+      - "interface 定义"
+      - "union 定义"
+
+    operations:
+      - "Query 字段"
+      - "Mutation 字段"
+      - "Subscription 字段"
+
+    directives:
+      - "自定义 directive 定义"
+
+  提取示例:
+    源文件: "schema.graphql"
+    内容: |
+      type User {
+        id: ID!
+        name: String!
+        email: String
+        role: UserRole!
+      }
+
+      enum UserRole {
+        ADMIN
+        USER
+        GUEST
+      }
+
+      type Query {
+        user(id: ID!): User
+        users(filter: UserFilter): [User!]!
+      }
+
+      type Mutation {
+        createUser(input: CreateUserInput!): User!
+        updateUser(id: ID!, input: UpdateUserInput!): User!
+      }
+
+    提取结果:
+      types:
+        - name: "User"
+          kind: "ObjectType"
+          fields: ["id: ID!", "name: String!", "email: String", "role: UserRole!"]
+        - name: "UserRole"
+          kind: "EnumType"
+          values: ["ADMIN", "USER", "GUEST"]
+
+      operations:
+        queries:
+          - name: "user"
+            args: ["id: ID!"]
+            return: "User"
+          - name: "users"
+            args: ["filter: UserFilter"]
+            return: "[User!]!"
+        mutations:
+          - name: "createUser"
+            args: ["input: CreateUserInput!"]
+            return: "User!"
+```
+
+### 3.4 RPC/Proto 契约提取 🆕 v1.6
+
+```yaml
+rpc_contract_extraction:
+
+  包含:
+    services:
+      - "service 定义"
+      - "rpc 方法"
+
+    messages:
+      - "message 定义"
+      - "enum 定义"
+
+    options:
+      - "package"
+      - "option go_package / java_package 等"
+
+  提取示例:
+    源文件: "user_service.proto"
+    内容: |
+      syntax = "proto3";
+      package user;
+
+      service UserService {
+        rpc GetUser(GetUserRequest) returns (User);
+        rpc CreateUser(CreateUserRequest) returns (User);
+        rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+      }
+
+      message User {
+        string id = 1;
+        string name = 2;
+        string email = 3;
+        UserRole role = 4;
+      }
+
+      enum UserRole {
+        ADMIN = 0;
+        USER = 1;
+        GUEST = 2;
+      }
+
+      message GetUserRequest {
+        string id = 1;
+      }
+
+    提取结果:
+      package: "user"
+      services:
+        - name: "UserService"
+          methods:
+            - name: "GetUser"
+              request: "GetUserRequest"
+              response: "User"
+            - name: "CreateUser"
+              request: "CreateUserRequest"
+              response: "User"
+            - name: "ListUsers"
+              request: "ListUsersRequest"
+              response: "ListUsersResponse"
+
+      messages:
+        - name: "User"
+          fields: ["id: string (1)", "name: string (2)", "email: string (3)", "role: UserRole (4)"]
+        - name: "GetUserRequest"
+          fields: ["id: string (1)"]
+
+      enums:
+        - name: "UserRole"
+          values: ["ADMIN = 0", "USER = 1", "GUEST = 2"]
+```
+
 ---
 
-## 四、快照存储格式
+## 七、快照存储格式
 
 ### 4.1 快照结构
 
@@ -1634,7 +2150,7 @@ storage:
 
 ---
 
-## 五、验证规则
+## 八、验证规则
 
 ### 5.1 类型完整性规则
 
@@ -1715,7 +2231,7 @@ violation_severity:
 
 ---
 
-## 六、变更请求机制 🆕
+## 九、变更请求机制
 
 ### 6.1 状态机
 
@@ -2109,7 +2625,7 @@ audit_log:
 
 ---
 
-## 七、与 Test Agent 协作
+## 十、与 Test Agent 协作
 
 ### 6.1 Phase A 验收时
 
@@ -2357,7 +2873,7 @@ contract_change_flow:
 
 ---
 
-## 八、与史官对接
+## 十一、与史官对接
 
 ### 7.1 史官需新增接口
 
@@ -2417,7 +2933,142 @@ return {
 
 ---
 
-## 九、铁律清单
+## 十二、与巡按御史对接
+
+### 9.1 对接场景
+
+```yaml
+scanner_integration_scenarios:
+
+  # 场景1：辅助契约提取
+  assist_extraction:
+    时机: "extract_contracts 执行前"
+    用途: "利用扫描结果快速定位契约文件"
+    流程:
+      1. "获取 scan_report.modules 列表"
+      2. "根据模块路径定位契约文件"
+      3. "优先扫描 types/, interfaces/, schemas/ 目录"
+    收益: "减少全量扫描时间"
+
+  # 场景2：迭代项目契约变更检测
+  existing_project:
+    时机: "verify_completeness / verify_consistency"
+    用途: "对比 Spec 声称的变更与实际代码变更"
+    流程:
+      1. "获取 scan_report.modules（现有模块）"
+      2. "对比 Spec 中声称修改的模块"
+      3. "检测 Spec 是否遗漏了应修改的模块"
+    检查项:
+      - "Spec 声称修改的模块必须存在于 scan_report"
+      - "Spec 声称新增的模块不应存在于 scan_report"
+      - "依赖被修改模块的其他模块是否需要更新"
+
+  # 场景3：重构项目契约迁移验证
+  refactor_project:
+    时机: "verify_consistency"
+    用途: "验证新旧契约的映射关系"
+    流程:
+      1. "获取 scan_report 中的现有契约"
+      2. "对比 Spec 中定义的目标契约"
+      3. "生成契约迁移映射"
+    输出:
+      mapping: "旧契约 → 新契约 映射"
+      removed: "被删除的契约"
+      added: "新增的契约"
+      transformed: "被转换的契约"
+```
+
+### 9.2 scan_report 使用规范
+
+```yaml
+scan_report_usage:
+
+  可用字段:
+    modules:
+      用途: "获取现有模块列表及路径"
+      示例: "scan_report.modules[].path → 定位契约文件"
+
+    dependency_graph:
+      用途: "分析模块依赖关系"
+      示例: "检测契约变更的影响范围"
+
+    feature_index:
+      用途: "功能到模块的映射"
+      示例: "验证功能相关的契约是否完整"
+
+  调用方式:
+    # 方式1：通过参数传入
+    verify_completeness:
+      input:
+        tech_spec: "..."
+        code_dir: "..."
+        scan_report: "{巡按御史扫描结果}"  # 可选
+
+    # 方式2：自动获取（需实现）
+    auto_fetch:
+      条件: "项目 ID 存在且有最近的扫描结果"
+      实现: "contractGuardian.getScanReport(project_id)"
+```
+
+### 9.3 场景差异化验证 🆕 v1.6
+
+```yaml
+scenario_specific_verification:
+
+  # ═══════════════════════════════════════════════════════════════
+  # 新项目 (new_project)
+  # ═══════════════════════════════════════════════════════════════
+  new_project:
+    验证重点: "契约与 Spec 的一致性"
+    检查项:
+      - "所有 Spec 定义的类型都有实现"
+      - "所有 Spec 定义的 API 都有路由"
+      - "函数签名与 Spec 一致"
+    不需要:
+      - "与现有代码对比（没有现有代码）"
+      - "兼容性检查"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 迭代项目 (existing)
+  # ═══════════════════════════════════════════════════════════════
+  existing:
+    验证重点: "变更的完整性和兼容性"
+    需要 scan_report: true
+    检查项:
+      - "Spec 声称修改的模块确实存在"
+      - "API 变更是否向后兼容"
+      - "类型变更是否影响依赖方"
+      - "是否有遗漏的联动修改"
+    额外验证:
+      - check: "verify_backward_compatibility"
+        description: "验证 API 向后兼容性"
+        输入: "old_snapshot + new_contracts"
+        输出: "breaking_changes[]"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 重构项目 (refactor)
+  # ═══════════════════════════════════════════════════════════════
+  refactor:
+    验证重点: "迁移映射的正确性"
+    需要 scan_report: true
+    检查项:
+      - "旧契约到新契约的映射完整"
+      - "废弃的契约有标记"
+      - "新旧契约的语义等价性"
+    额外验证:
+      - check: "verify_migration_mapping"
+        description: "验证迁移映射"
+        输入: "old_contracts + new_contracts + mapping"
+        输出: "mapping_issues[]"
+      - check: "verify_semantic_equivalence"
+        description: "验证语义等价（字段重命名、类型调整等）"
+        输入: "old_contract + new_contract"
+        输出: "equivalence_report"
+```
+
+---
+
+## 十三、铁律清单
 
 ```yaml
 contract_guardian_laws:
@@ -2427,37 +3078,43 @@ contract_guardian_laws:
   CG-01:
     name: "如实提取"
     rule: "只提取代码中实际存在的契约，不可编造"
-    违反: "凭空编造不存在的类型或签名"
+    evidence: "extraction_log 中记录扫描的文件列表，每个契约有 file:line 位置"
+    violation: "凭空编造不存在的类型或签名"
     severity: "🔴 最高级违规"
-    
+
   CG-02:
     name: "快照不可篡改"
     rule: "创建的快照不可事后修改"
-    违反: "修改已存档的快照内容"
+    evidence: "快照有 hash 字段，读取时 hash_verified 必须为 true"
+    violation: "修改已存档的快照内容"
     severity: "🔴 最高级违规"
-    
+
   CG-03:
     name: "对比必真实"
     rule: "对比结果必须真实反映差异"
-    违反: "隐瞒发现的变化"
+    evidence: "changes 返回 added/removed/modified 三类完整列表"
+    violation: "隐瞒发现的变化"
     severity: "🔴 最高级违规"
-    
+
   CG-04:
     name: "违规必报告"
     rule: "发现契约违规必须完整报告"
-    违反: "隐瞒或美化违规"
+    evidence: "violations 列表非空时，每项有 type/location/detail"
+    violation: "隐瞒或美化违规"
     severity: "🔴 最高级违规"
-    
+
   CG-05:
     name: "严重必标红"
     rule: "严重违规必须标记为 🔴 critical"
-    违反: "把严重问题降级为 warning"
+    evidence: "severity_breakdown.critical 包含所有破坏性变更"
+    violation: "把严重问题降级为 warning"
     severity: "🔴 最高级违规"
-    
+
   CG-06:
     name: "哈希必验证"
     rule: "读取快照时必须验证哈希"
-    违反: "跳过哈希验证"
+    evidence: "get_snapshot 返回 hash_verified: true/false"
+    violation: "跳过哈希验证"
     consequence: "快照可能被篡改而不知"
     
   # ========== 契约变更铁律 🆕 ==========
@@ -2465,50 +3122,57 @@ contract_guardian_laws:
   CG-07:
     name: "变更必走流程"
     rule: "任何契约变更必须通过正式流程（request → analyze → approve/reject）"
-    违反: "直接修改契约代码绕过流程"
+    evidence: "change_request_id 存在且状态为 approved/rejected"
+    violation: "直接修改契约代码绕过流程"
     severity: "🔴 最高级违规"
     consequence: "视同篡改契约"
-    
+
   CG-08:
     name: "变更必有理由"
     rule: "每个变更请求必须说明变更原因"
-    违反: "不说明原因就请求变更"
+    evidence: "request_contract_change 的 reason 字段非空"
+    violation: "不说明原因就请求变更"
     consequence: "变更请求无效"
-    
+
   CG-09:
     name: "影响必分析"
     rule: "变更批准前必须分析影响范围"
-    违反: "不分析影响就批准变更"
+    evidence: "analyze_change_impact 返回 affected_modules/affected_tests"
+    violation: "不分析影响就批准变更"
     consequence: "可能导致大量返工"
-    
+
   CG-10:
     name: "批准必留痕"
     rule: "变更批准必须记录批准者和批准时间"
-    违反: "不记录就批准"
+    evidence: "approve_contract_change 返回 approved_by + approved_at"
+    violation: "不记录就批准"
     consequence: "变更不可追溯"
-    
+
   CG-11:
     name: "拒绝必说明"
     rule: "拒绝变更必须说明拒绝原因"
-    违反: "不说明原因就拒绝"
+    evidence: "reject_contract_change 的 rejection_reason 非空"
+    violation: "不说明原因就拒绝"
     consequence: "Agent 不知道如何调整"
-    
+
   CG-12:
     name: "版本必递增"
     rule: "每次变更后快照版本必须递增"
-    违反: "变更后不增版本"
+    evidence: "new_snapshot.version > old_snapshot.version"
+    violation: "变更后不增版本"
     consequence: "版本混乱"
-    
+
   CG-13:
     name: "历史必保留"
     rule: "所有变更历史必须保留，不可删除"
-    违反: "删除变更历史"
+    evidence: "get_change_history 返回完整历史链"
+    violation: "删除变更历史"
     severity: "🔴 最高级违规"
 ```
 
 ---
 
-## 十、错误处理
+## 十四、错误处理
 
 ### 10.1 错误码清单
 
@@ -2658,10 +3322,14 @@ error_format:
 
 ---
 
-## 版本历史
+## 十五、版本历史
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
+| v1.8.1 | 2026-02-03 | 🔧 服务对象更新：添加 Review Agent 为辅助服务对象（可选调用 compare_with_snapshot 对比契约） |
+| v1.8 | 2026-02-02 | 🔧 司礼监复核修复：新增 unlock_snapshot（解锁快照，需皇上授权）、calculate_hash（计算契约哈希）、verify_snapshot_valid（验证快照有效性）三个接口 |
+| v1.7 | 2026-02-02 | 新增 lock_snapshot 接口（正式锁定快照，用于 Phase B 对比基准），区分 create_snapshot（创建）和 lock_snapshot（锁定）两步操作 |
+| v1.6 | 2026-01-31 | 添加调用证据要求、为铁律添加 evidence 字段、添加 GraphQL/RPC 契约提取规则、添加与巡按御史对接规范、添加场景差异化验证（new/existing/refactor） |
 | v1.5 | 2026-01-25 | 新增变更类型分类：兼容性变更（快速通道）vs 重大变更（皇上审批），自动分类规则 |
 | v1.4 | 2026-01-23 | 防虚报审查修复：版本号一致性修复、铁律检测说明增强 |
 | v1.3 | 2026-01-23 | 新增：get_contract_status 状态查询接口，供 Spec Agent 判断是否需要走变更流程 |
@@ -2671,4 +3339,4 @@ error_format:
 
 ---
 
-**🛡️ 契约守卫 · 大理寺丞 · 文档完**
+**🛡️ 契约守卫 · 大理寺丞 · v1.6 · 完**

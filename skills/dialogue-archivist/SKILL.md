@@ -13,11 +13,37 @@ description: |
 # 📁 对话档案官（史官）
 
 > 永乐大典 · 全项目生命周期记录
-> 版本：v1.9
+> 版本：v2.8
+> 🆕 v2.8：新增 query_event 接口（查询事件是否发生，供 Agent 验证流程状态）
+> v2.7：添加被 Spec Agent 核心 Skills 调用说明
 
 ---
 
-## 🎯 核心定位
+## 📌 目录
+
+1. [一、核心定位](#一核心定位)
+2. [二、接口总览](#二接口总览)
+3. [三、Layer 1: 项目级接口详细定义](#三layer-1-项目级接口详细定义)
+4. [四、Layer 2: 阶段级接口详细定义](#四layer-2-阶段级接口详细定义)
+5. [五、Layer 3: 迁移/重塑专用接口详细定义](#五layer-3-迁移重塑专用接口详细定义)
+6. [六、完整调用流程示例](#六完整调用流程示例)
+7. [七、存档目录结构](#七存档目录结构)
+8. [八、数据完整性保障](#八数据完整性保障)
+9. [九、快速模式 vs 标准模式](#九快速模式-vs-标准模式)
+10. [十、与巡按御史（Skill 3）对接](#十与巡按御史skill-3对接)
+11. [十一、Layer 4: 契约快照接口详细定义](#十一layer-4-契约快照接口详细定义)
+12. [十二、Layer 5: 持续学习接口详细定义](#十二layer-5-持续学习接口详细定义)
+13. [十三、Layer 6: 状态同步接口详细定义](#十三layer-6-状态同步接口详细定义)
+14. [十四、数据完整性保障（续）](#十四数据完整性保障续)
+15. [十五、Layer 7: 反馈与重试接口详细定义](#十五layer-7-反馈与重试接口详细定义)
+16. [十六、Layer 8: 场景管理接口详细定义](#十六layer-8-场景管理接口详细定义)
+17. [十七、三 Skill 协作流程（Skill Collaboration）](#十七三-skill-协作流程skill-collaboration)
+18. [十八、被 Spec Agent 核心 Skills 调用说明](#十八被-spec-agent-核心-skills-调用说明)
+19. [十九、版本历史](#十九版本历史)
+
+---
+
+## 一、核心定位
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -59,7 +85,7 @@ description: |
 
 ---
 
-## 📚 接口总览
+## 二、接口总览
 
 ### Layer 1: 项目级接口
 
@@ -73,6 +99,11 @@ description: |
 | 6 | create_snapshot | 创建快照 | 需要备份时 |
 | 7 | restore_snapshot | 恢复快照 | 需要回滚时 |
 | 8 | get_timeline | 获取项目时间线 | 查看项目历程时 |
+| 55 | complete_project | 完成项目（归档总结） | 项目交付完成时 | 🆕 v2.6
+| 56 | pause_project | 暂停项目 | 切换到其他项目时 | 🆕 v2.6
+| 57 | resume_project | 恢复暂停的项目 | 继续之前的项目时 | 🆕 v2.6
+| 58 | abandon_project | 废弃/取消项目 | 项目中止时 | 🆕 v2.6
+| 59 | list_projects | 列出所有项目 | 查看项目列表时 | 🆕 v2.6
 
 ### Layer 2: 阶段级接口
 
@@ -83,6 +114,7 @@ description: |
 | 11 | record_correction | 记录纠正 | 用户纠正之前说法时 |
 | 12 | mark_decision | 标记阶段内决策 | 用户做决策时 |
 | 13 | record_event | 记录系统事件 | 校验等事件发生时 |
+| 13.1 | query_event | 查询系统事件 | 检查事件是否发生时 | 🆕 v2.6
 | 14 | confirm_points | 记录用户确认要点 | 用户确认要点时 |
 | 15 | end_round | 结束轮次 | 轮次完成时 |
 | 16 | archive | 生成阶段存档 | 阶段完成时 |
@@ -137,10 +169,27 @@ description: |
 | 45 | verify_state_understanding | 验证状态理解是否正确 | Agent 读取状态后 |
 | 46 | report_state_mismatch | 报告状态不一致 | 发现状态问题时 |
 | 47 | sync_state | 强制同步状态 | 状态修复时 |
+| 48 | switch_project | 切换活跃项目 | 切换项目前 | 🆕
+| 49 | get_active_project | 获取当前活跃项目 | 任意时刻/显示给皇上 | 🆕
+
+### Layer 7: 反馈与重试接口 🆕 v2.2
+
+| # | 接口名 | 用途 | 调用时机 |
+|---|--------|------|---------|
+| 50 | record_downstream_feedback | 记录下游 Agent 反馈 | 收到反馈时 |
+| 51 | get_feedback_history | 获取反馈历史 | 分析时 |
+| 52 | record_stage_retry | 记录阶段重试 | 重试开始时 |
+
+### Layer 8: 场景管理接口 🆕 v2.3
+
+| # | 接口名 | 用途 | 调用时机 |
+|---|--------|------|---------|
+| 53 | update_scenario_type | 更新/确定场景类型 | 扫描后或采访中发现需要变更时 |
+| 54 | get_scenario_info | 获取当前场景信息 | 任意时刻 |
 
 ---
 
-## 📖 Layer 1: 项目级接口详细定义
+## 三、Layer 1: 项目级接口详细定义
 
 ### 接口 1: init_project
 
@@ -153,19 +202,47 @@ input:
   project_name: string
   user_request: string             # 用户原始需求（锁定保存）
   complexity: "simple" | "medium" | "complex" | null  # 可选，自动判断
+  # 🆕 v2.3 场景类型支持（支持延迟确定）
+  scenario_type: "new_project" | "iteration" | "batch_delivery" | "refactor" | null  # 🆕 可为 null（延迟确定）
+  batch_info:                      # 🆕 仅 batch_delivery 场景需要
+    total_batches: number | null
+
+# 🆕 v2.3 延迟确定场景说明
+scenario_deferred:
+  description: |
+    对于已有项目，场景类型可能需要先扫描才能确定。
+    此时 scenario_type 可传 null，后续通过 update_scenario_type 确定。
+
+  allowed_when:
+    - "已有项目需要先扫描"
+    - "用户需求不明确，需要采访后确定"
+
+  must_confirm_before:
+    - "生成 Plan Report"
+    - "调用 complete_stage"
+
+  铁律:
+    DA-21:
+      name: "场景必最终确定"
+      rule: "scenario_type=null 的项目，必须在 complete_stage 前通过 update_scenario_type 确定"
+    batch_names: array | null      # 可选，批次名称列表
 
 output:
   project_id: string               # 项目唯一标识
   project_path: string             # .orchestra/ 路径
   complexity_detected: string      # 检测到的复杂度
   mode: "quick" | "standard"       # 快速模式 or 标准模式
+  scenario_type: string            # 🆕 确认的场景类型
+  batch_info: object | null        # 🆕 批次信息（如有）
   status: "project_initialized"
 
 actions:
   - 创建 .orchestra/ 目录结构
-  - 初始化 project.json
+  - 初始化 project.json（含 scenario_type）
   - 锁定保存用户原始需求
   - 判断项目复杂度，决定采用快速/标准模式
+  - 🆕 记录场景类型到 project.json
+  - 🆕 如果是 batch_delivery，初始化批次追踪结构
 ```
 
 #### 复杂度判断规则
@@ -220,6 +297,12 @@ output:
     status: "in_progress" | "completed" | "paused"
     current_stage: string
     mode: "quick" | "standard"
+    # 🆕 v2.2 场景信息
+    scenario_type: "new_project" | "iteration" | "batch_delivery" | "refactor"  # 🆕
+    batch_info:                    # 🆕 仅 batch_delivery 场景
+      total_batches: number | null
+      current_batch: number | null
+      completed_batches: array | null
     stages:
       plan: { status, completed_at, outputs_summary }
       spec: { status, completed_at, outputs_summary }
@@ -243,7 +326,7 @@ interface: register_stage
 
 input:
   project_id: string
-  stage: "plan" | "spec" | "code" | "review"
+  stage: "plan" | "spec" | "code" | "test" | "review"  # 🆕 v2.5 添加 test
   agent_id: string
   agent_role: string
 
@@ -251,6 +334,11 @@ output:
   stage_session_id: string         # 阶段会话ID
   archive_path: string             # 阶段档案路径
   previous_stage_outputs: object | null  # 上一阶段的产出（如有）
+  # 🆕 v2.2 场景上下文
+  scenario_context:                # 🆕 传递给下游 Agent 的场景信息
+    scenario_type: string          # 场景类型
+    batch_info: object | null      # 批次信息（如有）
+    scenario_specific_hints: array # 场景特定提示
   status: "stage_registered"
 
 actions:
@@ -258,6 +346,8 @@ actions:
   - 创建阶段档案目录
   - 记录到 timeline
   - 如果是后续阶段，加载上一阶段产出
+  - 🆕 从 project.json 加载场景上下文
+  - 🆕 生成场景特定提示（如 batch_delivery 提示分批策略）
 ```
 
 ---
@@ -425,7 +515,266 @@ output:
 
 ---
 
-## 📖 Layer 2: 阶段级接口详细定义
+### 接口 55: complete_project 🆕 v2.6
+
+**用途**: 完成项目，生成项目总结并归档
+
+```yaml
+interface: complete_project
+
+input:
+  project_id: string
+  completion_info:
+    status: "success" | "partial" | "cancelled"  # 完成状态
+    summary: string                              # 项目总结
+    key_deliverables:                            # 主要交付物
+      - name: string
+        path: string
+        type: "code" | "doc" | "config" | "other"
+    lessons_learned: array | null                # 经验教训（可选）
+    final_metrics:                               # 最终指标
+      total_duration: string                     # 总耗时
+      stages_completed: number                   # 完成的阶段数
+      decisions_made: number                     # 决策数
+      issues_resolved: number                    # 解决的问题数
+  user_confirmed: boolean                        # 用户确认完成
+
+output:
+  archive_id: string                             # 归档 ID
+  archive_path: string                           # 归档路径
+  project_report_path: string                    # 项目报告路径
+  status: "project_completed"
+
+  # 项目总结报告
+  project_summary:
+    project_name: string
+    scenario_type: string
+    duration: string
+    stages:
+      - stage: string
+        status: "completed" | "skipped"
+        duration: string
+    key_decisions: array
+    deliverables: array
+
+actions:
+  - 验证所有阶段已完成或标记为跳过
+  - 生成项目总结报告
+  - 归档所有阶段记录
+  - 更新 project.json 状态为 completed
+  - 记录到 timeline
+  - 触发持续学习评估（如果启用）
+  - 清理临时文件（可选）
+
+铁律:
+  DA-24:
+    name: "完成必确认"
+    rule: "complete_project 必须有 user_confirmed=true"
+    检测方法:
+      步骤:
+        1: "检查 complete_project 调用的 user_confirmed"
+        2: "user_confirmed=false 或缺失 = 违规"
+      证据: "complete_project 的 user_confirmed 字段"
+```
+
+---
+
+### 接口 56: pause_project 🆕 v2.6
+
+**用途**: 暂停项目（多项目并行时）
+
+```yaml
+interface: pause_project
+
+input:
+  project_id: string
+  pause_reason: string                           # 暂停原因
+  pause_context:
+    current_stage: string                        # 当前阶段
+    current_task: string | null                  # 当前任务
+    pending_items: array                         # 待处理事项
+    estimated_resume: datetime | null            # 预计恢复时间
+  create_checkpoint: boolean                     # 是否创建检查点快照
+
+output:
+  pause_id: string                               # 暂停记录 ID
+  checkpoint_id: string | null                   # 检查点快照 ID（如创建）
+  paused_at: datetime
+  status: "project_paused"
+
+  # 暂停上下文（恢复时使用）
+  resume_context:
+    stage_to_resume: string
+    pending_items: array
+    last_activity: datetime
+
+actions:
+  - 保存当前进度
+  - 创建检查点快照（如果 create_checkpoint=true）
+  - 更新 project.json 状态为 paused
+  - 记录暂停事件到 timeline
+  - 保存恢复上下文
+
+状态流转:
+  active → paused: "调用 pause_project"
+  paused → active: "调用 resume_project"
+```
+
+---
+
+### 接口 57: resume_project 🆕 v2.6
+
+**用途**: 恢复暂停的项目
+
+```yaml
+interface: resume_project
+
+input:
+  project_id: string
+  resume_context:
+    confirm_pending_items: boolean               # 确认待处理事项仍有效
+    update_priority: boolean                     # 是否更新优先级
+    new_context: object | null                   # 新的上下文信息
+
+output:
+  resume_id: string                              # 恢复记录 ID
+  resumed_at: datetime
+  status: "project_resumed"
+
+  # 恢复后的状态
+  current_state:
+    stage: string                                # 当前阶段
+    pending_items: array                         # 待处理事项
+    pause_duration: string                       # 暂停时长
+    checkpoint_id: string | null                 # 可用的检查点
+
+actions:
+  - 验证项目处于 paused 状态
+  - 加载暂停时保存的上下文
+  - 更新 project.json 状态为 active
+  - 记录恢复事件到 timeline
+  - 通知相关 Agent
+
+validation:
+  - 项目必须处于 paused 状态
+  - 暂停时的检查点仍然有效
+```
+
+---
+
+### 接口 58: abandon_project 🆕 v2.6
+
+**用途**: 废弃/取消项目
+
+```yaml
+interface: abandon_project
+
+input:
+  project_id: string
+  abandon_info:
+    reason: string                               # 废弃原因
+    reason_type: "requirements_changed" | "infeasible" | "deprioritized" | "merged" | "other"
+    merged_into: string | null                   # 如果合并到其他项目
+    salvage_items:                               # 可回收的内容
+      - item: string
+        path: string
+        reuse_suggestion: string
+  user_confirmed: boolean                        # 用户确认废弃
+  acknowledge_data_loss: boolean                 # 确认数据不可恢复
+
+output:
+  abandon_id: string                             # 废弃记录 ID
+  abandoned_at: datetime
+  status: "project_abandoned"
+
+  # 废弃报告
+  abandon_report:
+    project_name: string
+    reason: string
+    stages_completed: array                      # 已完成的阶段
+    stages_abandoned: array                      # 被废弃的阶段
+    salvaged_items: array                        # 已回收的内容
+    archive_path: string                         # 归档路径（废弃项目也归档）
+
+actions:
+  - 验证 user_confirmed=true 和 acknowledge_data_loss=true
+  - 记录废弃原因和上下文
+  - 标记可回收内容
+  - 更新 project.json 状态为 abandoned
+  - 归档所有记录（标记为废弃）
+  - 记录到 timeline
+
+铁律:
+  DA-25:
+    name: "废弃双确认"
+    rule: "abandon_project 必须 user_confirmed=true 且 acknowledge_data_loss=true"
+    检测方法:
+      步骤:
+        1: "检查 abandon_project 调用参数"
+        2: "任一确认缺失 = 违规"
+      证据: "abandon_project 的确认字段"
+```
+
+---
+
+### 接口 59: list_projects 🆕 v2.6
+
+**用途**: 列出所有项目
+
+```yaml
+interface: list_projects
+
+input:
+  filter:
+    status: array | null                         # ["active", "paused", "completed", "abandoned"]
+    scenario_type: array | null                  # ["new_project", "iteration", ...]
+    date_range:
+      from: datetime | null
+      to: datetime | null
+  sort:
+    by: "created_at" | "updated_at" | "name" | "status"
+    order: "asc" | "desc"
+  pagination:
+    page: number
+    per_page: number
+
+output:
+  projects:
+    - project_id: string
+      project_name: string
+      status: "active" | "paused" | "completed" | "abandoned"
+      scenario_type: string
+      current_stage: string | null               # 当前阶段（active/paused 时）
+      created_at: datetime
+      updated_at: datetime
+      progress:                                  # 进度摘要
+        stages_completed: number
+        stages_total: number
+        percentage: number
+
+  # 统计信息
+  stats:
+    total: number
+    by_status:
+      active: number
+      paused: number
+      completed: number
+      abandoned: number
+    by_scenario:
+      new_project: number
+      iteration: number
+      batch_delivery: number
+      refactor: number
+
+  pagination:
+    current_page: number
+    total_pages: number
+    total_items: number
+```
+
+---
+
+## 四、Layer 2: 阶段级接口详细定义
 
 ### 接口 9: init_session
 
@@ -529,14 +878,47 @@ input:
     chosen: string
     reason: string | null
 
+    # ═══ 🆕 推荐模式扩展字段 ═══
+    recommendation_info:              # 可选，仅推荐模式时提供
+      decision_type: "recommendation_adopted" | "user_choice" | "user_modified"
+      recommended: string | null      # Agent 原始推荐内容（见下方校验规则）
+      modification_detail: string | null  # 如果是 user_modified，记录修改点
+
 output:
   decision_id: string              # 阶段级 ID
   project_decision_id: string      # 项目级 ID（自动上报）
+  recommendation_tracked: boolean  # 🆕 是否记录了推荐信息
+  validation_warnings: array | null  # 🆕 校验警告（非阻塞）
   status: "decision_marked"
 
+# 🆕 推荐模式字段校验规则
+recommendation_validation:
+
+  decision_type_rules:
+    recommendation_adopted:
+      recommended: "required"       # 必填：记录被采纳的推荐内容
+      modification_detail: "forbidden"  # 禁止：采纳不涉及修改
+
+    user_modified:
+      recommended: "required"       # 必填：记录原始推荐内容
+      modification_detail: "required"   # 必填：记录修改了什么
+
+    user_choice:
+      recommended: "optional"       # 可选：如果 Agent 曾给推荐但被拒绝，记录原推荐
+      modification_detail: "forbidden"  # 禁止：自选不涉及修改
+      note: "如果用户完全自主选择（Agent 未给推荐），recommended 可为 null"
+
+  validation_behavior:
+    on_violation: "warn_not_block"  # 违反规则时警告但不阻塞
+    warnings_in_output: true        # 将警告放入 validation_warnings 字段
+    log_violations: true            # 记录违规情况供分析
+
 actions:
+  - 执行 recommendation_validation 校验
   - 记录到阶段档案
   - 自动调用 report_decision() 上报项目级
+  - 如果有 recommendation_info，记录到 decisions-full.md 的推荐决策区块
+  - 如果有校验警告，记录到 validation_warnings
 ```
 
 ---
@@ -553,9 +935,13 @@ input:
   event:
     timestamp: datetime
     round: number
-    type: "validation_fail" | "validation_pass" | "warning" | "revision_start" | "pause" | "resume" | "project_scan"
+    type: string  # 🆕 v2.5 扩展为 string，支持所有事件类型（见下方 event_types）
     source: string
     details: object
+    # 🆕 v2.5 可选的 Agent 标识
+    agent_context:
+      agent_type: "plan" | "spec" | "code" | "test" | "review" | null
+      phase: "a" | "b" | null  # Code/Test Agent 的阶段
 
 output:
   event_id: string
@@ -566,16 +952,137 @@ output:
 
 ```yaml
 event_types:
+  # === 通用事件 ===
   validation_fail: "校验失败"
   validation_pass: "校验通过"
   warning: "警告（非阻塞）"
   revision_start: "开始修改已确认内容"
   pause: "暂停会话"
   resume: "恢复会话"
-  project_scan: "项目扫描（来自钦天监）"  # 🆕
+  project_scan: "项目扫描（来自巡按御史）"
+
+  # === 失败与重试事件 (v2.2) ===
+  stage_failure: "阶段失败（需要重试或人工介入）"
+  retry_attempt: "重试尝试开始"
+  retry_success: "重试成功"
+  retry_exhausted: "重试次数耗尽（需人工介入）"
+  downstream_feedback: "收到下游 Agent 反馈"
+  feedback_resolved: "反馈问题已解决"
+
+  # === 🆕 v2.5 Code Agent 专用事件 ===
+  phase_a_start: "Phase A（契约层）开始"
+  phase_a_complete: "Phase A 完成，等待验收"
+  phase_b_start: "Phase B（实现层）开始"
+  phase_b_complete: "Phase B 完成"
+  function_complete: "单个功能实现完成"
+  batch_checkpoint: "批次检查点（重塑/批量交付）"
+  code_quality_scan: "代码质量扫描完成"
+
+  # === 🆕 v2.5 Test Agent 专用事件 ===
+  test_stage_start: "Test 阶段开始"
+  test_stage_complete: "Test 阶段完成"
+  phase_a_verify_start: "Phase A 验收开始"
+  phase_a_verify_pass: "Phase A 验收通过"
+  phase_a_verify_fail: "Phase A 验收失败"
+  phase_b_verify_start: "Phase B 验收开始"
+  phase_b_verify_pass: "Phase B 验收通过"
+  phase_b_verify_fail: "Phase B 验收失败"
+  contract_lock_request: "请求锁定契约"
+  contract_locked: "契约已锁定"
+  test_report_generated: "测试报告已生成"
+  gate_check_pass: "门禁检查通过"
+  gate_check_fail: "门禁检查失败"
+
+  # === 🆕 v2.5 Review Agent 专用事件 ===
+  review_start: "代码审查开始"
+  review_issue_found: "发现审查问题"
+  review_approve: "审查通过"
+  review_reject: "审查不通过"
+  review_conditional: "有条件通过（需修复后复审）"
+  explanation_generated: "代码说明已生成"
 ```
 
-#### 与钦天监（Skill 3）对接 🆕
+### 接口 13.1: query_event 🆕 v2.6
+
+**用途**: 查询系统事件是否发生（供其他 Agent 验证流程状态）
+
+```yaml
+interface: query_event
+
+description: |
+  查询特定类型的事件是否已记录。
+  主要用于：
+  1. Test Agent 验证契约是否已锁定
+  2. Code Agent 检查阶段是否完成
+  3. Review Agent 检查前序流程是否完成
+
+input:
+  event_type:
+    type: "string"
+    description: "要查询的事件类型"
+    example: "contract_locked"
+
+  filters:
+    type: "object"
+    description: "过滤条件"
+    properties:
+      project_id:
+        type: "string"
+        description: "项目 ID"
+      session_id:
+        type: "string"
+        description: "会话 ID"
+      since:
+        type: "datetime"
+        description: "起始时间"
+      agent_type:
+        type: "string"
+        description: "Agent 类型"
+
+output:
+  found:
+    type: "boolean"
+    description: "是否找到匹配事件"
+
+  event:
+    type: "object | null"
+    description: "最近一条匹配的事件（如有）"
+    properties:
+      event_id: "事件 ID"
+      timestamp: "时间戳"
+      type: "事件类型"
+      details: "事件详情"
+
+  count:
+    type: "number"
+    description: "匹配事件总数"
+
+example_call: |
+  # 检查契约是否已锁定
+  const result = await archivist.query_event({
+    event_type: "contract_locked",
+    filters: {
+      project_id: "project_abc"
+    }
+  });
+
+  if (result.found) {
+    console.log(`契约已于 ${result.event.timestamp} 锁定`);
+  } else {
+    console.log("契约尚未锁定");
+  }
+
+  # 检查 Phase A 验收是否通过
+  const phaseAResult = await archivist.query_event({
+    event_type: "phase_a_verify_pass",
+    filters: {
+      project_id: "project_abc",
+      since: "2026-02-01T00:00:00Z"
+    }
+  });
+```
+
+#### 与巡按御史（Skill 3）对接 🆕
 
 ```yaml
 scanner_integration:
@@ -728,7 +1235,7 @@ output:
 
 ---
 
-## 📖 Layer 3: 迁移/重塑专用接口详细定义
+## 五、Layer 3: 迁移/重塑专用接口详细定义
 
 ### 接口 18: init_migration
 
@@ -935,7 +1442,7 @@ output:
 
 ---
 
-## 🔄 完整调用流程示例
+## 六、完整调用流程示例
 
 ### 新项目启动（Plan Agent）
 
@@ -1054,7 +1561,7 @@ flow_cross_stage_rollback:
 
 ---
 
-## 📂 存档目录结构
+## 七、存档目录结构
 
 ```
 .orchestra/
@@ -1069,7 +1576,7 @@ flow_cross_stage_rollback:
 ├── snapshots/
 │   ├── snapshot-{timestamp}.json
 │   └── ...
-├── scans/                            # 项目扫描（来自钦天监）
+├── scans/                            # 项目扫描（来自巡按御史）
 │   ├── scan-index.md
 │   ├── scan-{id}/
 │   │   ├── scan-report.md
@@ -1128,7 +1635,7 @@ flow_cross_stage_rollback:
 
 ---
 
-## 🔐 数据完整性保障
+## 八、数据完整性保障
 
 ```yaml
 integrity:
@@ -1284,7 +1791,7 @@ integrity:
 
 ---
 
-## ⚡ 快速模式 vs 标准模式
+## 九、快速模式 vs 标准模式
 
 ```yaml
 mode_comparison:
@@ -1308,15 +1815,15 @@ mode_comparison:
 
 ---
 
-## 🔗 与钦天监（Skill 3）对接 🆕
+## 十、与巡按御史（Skill 3）对接
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                             │
-│  史官与钦天监的协作                                                         │
+│  史官与巡按御史的协作                                                         │
 │  ═════════════════════                                                      │
 │                                                                             │
-│   钦天监（Skill 3）                    史官（Skill 2）                      │
+│   巡按御史（Skill 3）                    史官（Skill 2）                      │
 │   ┌─────────────────┐                 ┌─────────────────┐                  │
 │   │                 │                 │                 │                  │
 │   │  扫描项目       │ ──scan_result──→│  存档扫描结果   │                  │
@@ -1336,11 +1843,11 @@ scanner_archivist_integration:
   # 扫描完成后存档
   on_scan_complete:
     step_1:
-      action: "钦天监完成扫描"
+      action: "巡按御史完成扫描"
       output: "scan_result"
       
     step_2:
-      action: "钦天监调用史官"
+      action: "巡按御史调用史官"
       interface: "record_event"
       params:
         type: "project_scan"
@@ -1401,7 +1908,7 @@ scan_archive_content:
 
 ---
 
-## 📖 Layer 4: 契约快照接口详细定义
+## 十一、Layer 4: 契约快照接口详细定义
 
 > 与契约守卫（Contract Guardian）配合使用
 
@@ -1755,7 +2262,7 @@ output:
 
 ---
 
-## 📖 Layer 5: 持续学习接口详细定义 🆕
+## 十二、Layer 5: 持续学习接口详细定义
 
 > 来源：Everything Claude Code → 永乐大典融合
 > 「朝廷积累经验，形成惯例，后世可循」
@@ -2216,7 +2723,7 @@ skill_lifecycle:
 
 ---
 
-## 📖 Layer 6: 状态同步接口详细定义 🆕 v1.9
+## 十三、Layer 6: 状态同步接口详细定义
 
 > 解决多 Agent 协作时的状态一致性问题
 
@@ -2396,6 +2903,175 @@ actions:
   - 记录同步事件
 ```
 
+---
+
+### 接口 48: switch_project 🆕
+
+**用途**: 切换活跃项目（防止多项目混乱）
+
+```yaml
+interface: switch_project
+
+input:
+  from_project_id: string | null    # 当前项目（null = 无活跃项目）
+  to_project_id: string             # 目标项目
+  reason: string                    # 切换原因
+  force: boolean                    # 是否强制切换（跳过未完成检查）
+  user_confirmed: boolean           # 🆕 用户是否已确认（force=true 时必须为 true）
+  acknowledge_red_flags: boolean    # 🆕 是否确认忽略 Red Flags（有 Red Flags 时必须为 true）
+
+output:
+  switched: boolean
+  warning: string | null            # 如果 from_project 未完成，警告信息
+  from_project_status:
+    stage: string | null            # 切换前所在阶段
+    completed: boolean              # 是否已完成
+    has_red_flags: boolean          # 🆕 是否有未处理的 Red Flags
+    red_flags_count: number         # 🆕 Red Flags 数量
+  to_project_status:
+    exists: boolean                 # 目标项目是否已存在
+    stage: string | null            # 如存在，当前阶段
+  active_project_display: string    # 皇上可见的项目标识
+  status: "project_switched" | "switch_blocked" | "needs_confirmation" | "target_not_found" | "same_project"  # 🆕 新增状态
+
+# 🆕 输入校验规则
+validation:
+  - rule: "from = to 检查"
+    condition: "from_project_id == to_project_id"
+    action: "返回 status: same_project, message: 当前已在该项目中"
+
+  - rule: "目标项目存在性检查"
+    condition: "to_project 不存在"
+    action: "返回 status: target_not_found, message: 目标项目不存在，请先调用 init_project()"
+
+  - rule: "强制切换确认检查"
+    condition: "force=true AND user_confirmed=false"
+    action: "返回 status: switch_blocked, message: 强制切换需要用户确认"
+
+  - rule: "Red Flags 确认检查"
+    condition: "from_project 有 Red Flags AND acknowledge_red_flags=false"
+    action: "返回 status: switch_blocked, message: 当前项目有 {n} 个未处理的 Red Flags，请确认忽略"
+
+actions:
+  - 执行输入校验（按顺序）
+  - 检查 from_project 状态
+  - 如果 from_project 未完成且 force=false，返回 needs_confirmation
+  - 记录切换事件到两个项目的 timeline
+  - 更新 .orchestra-global/active-context.json
+  - 返回 active_project_display 供显示
+
+blocking_conditions:
+  - from_project_id == to_project_id（同项目切换）
+  - to_project 不存在
+  - force=true 但 user_confirmed=false
+  - from_project 处于 Plan/Spec/Code 进行中 且 force=false
+  - from_project 有未确认的决策 且 force=false
+  - from_project 有未处理的 Red Flags 且 acknowledge_red_flags=false
+```
+
+---
+
+### 接口 49: get_active_project 🆕
+
+**用途**: 获取当前活跃项目（供显示给皇上）
+
+```yaml
+interface: get_active_project
+
+input:
+  include_details: boolean          # 是否包含详细信息
+
+output:
+  active_project:
+    project_id: string | null       # 当前活跃项目 ID
+    project_name: string | null     # 项目名称
+    current_stage: string | null    # 当前阶段
+    stage_progress: string | null   # 阶段进度描述
+
+  # 皇上显示专用
+  display_banner: string            # 格式化的显示横幅
+  # 例："📂 当前项目：blog-20260122 | 阶段：Plan | 进度：第2轮采访"
+
+  pending_projects: array | null    # 如有暂停的项目，列出
+  status: "active" | "no_active_project" | "context_file_not_found" | "context_file_corrupted"  # 🆕 新增异常状态
+
+  # 🆕 异常信息
+  error_info:
+    error_type: string | null       # 错误类型
+    error_message: string | null    # 错误信息
+    recovery_action: string | null  # 建议的恢复操作
+
+actions:
+  - 检查 .orchestra-global/ 目录是否存在
+  - 如果目录不存在，自动创建并初始化空 active-context.json
+  - 读取 .orchestra-global/active-context.json
+  - 如果文件不存在，自动创建空文件，返回 no_active_project
+  - 如果文件损坏/格式错误，返回 context_file_corrupted 并提供恢复建议
+  - 格式化 display_banner
+  - 如 include_details=true，查询项目详情
+
+# 🆕 异常处理流程
+exception_handling:
+
+  file_not_found:
+    condition: "active-context.json 不存在"
+    action: "自动创建空文件"
+    auto_create_content: |
+      {
+        "active_project_id": null,
+        "active_stage": null,
+        "last_switch": null,
+        "pending_projects": []
+      }
+    return_status: "no_active_project"
+    display_banner: "📂 当前无活跃项目（已自动初始化）"
+
+  file_corrupted:
+    condition: "JSON 解析失败或必要字段缺失"
+    action: "返回错误状态，不自动修复"
+    return_status: "context_file_corrupted"
+    error_info:
+      error_type: "file_corrupted"
+      error_message: "active-context.json 文件损坏或格式错误"
+      recovery_action: "请运行 repair_active_context 修复，或手动删除后重新初始化"
+    display_banner: "⚠️ 项目上下文文件损坏，请修复"
+
+  directory_not_found:
+    condition: ".orchestra-global/ 目录不存在"
+    action: "自动创建目录和空文件"
+    return_status: "no_active_project"
+    display_banner: "📂 当前无活跃项目（已自动初始化）"
+```
+
+#### 显示横幅格式
+
+```yaml
+display_banner_formats:
+
+  有活跃项目:
+    template: "📂 当前项目：{project_id} | 阶段：{stage} | 进度：{progress}"
+    example: "📂 当前项目：blog-20260122 | 阶段：Plan | 进度：第2轮采访"
+
+  无活跃项目:
+    template: "📂 当前无活跃项目"
+    example: "📂 当前无活跃项目"
+
+  有暂停项目:
+    template: "📂 当前项目：{project_id} | ⚠️ 还有 {n} 个暂停项目"
+    example: "📂 当前项目：blog-20260122 | ⚠️ 还有 1 个暂停项目"
+
+  # 🆕 异常状态
+  文件损坏:
+    template: "⚠️ 项目上下文文件损坏，请修复"
+    example: "⚠️ 项目上下文文件损坏，请修复"
+
+  首次初始化:
+    template: "📂 当前无活跃项目（已自动初始化）"
+    example: "📂 当前无活跃项目（已自动初始化）"
+```
+
+---
+
 ### 握手流程示例
 
 ```yaml
@@ -2456,7 +3132,7 @@ handshake_example:
   DA-13:
     name: "Agent 启动必握手"
     rule: "每个 Agent 启动时必须调用 handshake() 确认状态"
-    违反: "跳过握手直接工作"
+    violation: "跳过握手直接工作"
     consequence: "可能基于过时或错误的状态工作"
     检测方法:
       步骤:
@@ -2464,6 +3140,53 @@ handshake_example:
         2: "验证是否有对应的 handshake 记录"
         3: "无握手记录 = 违规"
       证据: "handshake_id"
+
+  DA-14:  # 🆕
+    name: "推荐模式必须记录完整"
+    rule: "当 decision 包含 recommendation_info 时，必须完整记录三要素"
+    三要素:
+      - decision_type（决策类型：采纳/自选/修改）
+      - recommended（原始推荐）
+      - chosen（最终选择）
+    violation: "推荐模式决策但未提供 recommendation_info"
+    consequence: "决策追溯不完整，无法分析推荐采纳率"
+    检测方法:
+      步骤:
+        1: "查找 Plan Agent 会话中的推荐决策"
+        2: "检查 mark_decision 是否包含 recommendation_info"
+        3: "缺失 = 违规"
+      证据: "decisions-full.md 推荐决策区块"
+
+  DA-15:  # 🆕
+    name: "项目切换必须走流程"
+    rule: "切换活跃项目必须调用 switch_project()，禁止直接操作"
+    violation: "直接修改 active-context.json 或跳过切换直接操作新项目"
+    consequence: "项目数据可能混乱，timeline 不完整"
+    检测方法:
+      步骤:
+        1: "检查 active-context.json 变更记录"
+        2: "验证是否有对应的 switch_project 调用"
+        3: "无调用记录 = 违规"
+      证据: "switch_project 返回的 status"
+
+  DA-16:  # 🆕
+    name: "必须提供准确的 display_banner"
+    rule: "get_active_project() 必须返回准确的 display_banner 数据"
+    violation: "返回的 display_banner 与实际状态不符"
+    consequence: "内阁显示错误信息给皇上"
+
+    # 🆕 职责说明（与内阁 CO-31 配合）
+    职责分工:
+      史官职责: "提供准确的 display_banner 数据"
+      内阁职责: "在合适的时机显示 display_banner（见 CO-31）"
+      配合关系: "史官提供数据 → 内阁决定何时显示"
+
+    检测方法:
+      步骤:
+        1: "调用 get_active_project()"
+        2: "对比 display_banner 与 active-context.json 实际数据"
+        3: "数据不一致 = 违规"
+      证据: "display_banner 与 active-context.json 对比结果"
 ```
 
 ---
@@ -2862,7 +3585,7 @@ notification_timing:
 
 ---
 
-## 🔐 数据完整性保障（续）
+## 十四、数据完整性保障（续）
 
 ```yaml
 integrity:
@@ -2944,10 +3667,972 @@ integrity:
 
 ---
 
-## 📋 版本历史
+## 十五、Layer 7: 反馈与重试接口详细定义
+
+> 与 Plan Agent v2.6 反馈机制对齐
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  反馈与重试记录机制                                                         │
+│  ══════════════════                                                         │
+│                                                                             │
+│   下游 Agent                       史官                    上游 Agent       │
+│   ┌─────────────┐                 ┌─────────────┐         ┌─────────────┐  │
+│   │             │                 │             │         │             │  │
+│   │  发现问题   │ ──feedback───→  │  记录反馈   │ ──通知─→│  接收反馈   │  │
+│   │  Spec/Code  │                 │  追溯来源   │         │  Plan Agent │  │
+│   │             │                 │  触发重试   │         │             │  │
+│   │             │                 │             │         │             │  │
+│   └─────────────┘                 └─────────────┘         └─────────────┘  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 接口 50: record_downstream_feedback 🆕
+
+**用途**: 记录下游 Agent 发现的问题反馈
+
+```yaml
+interface: record_downstream_feedback
+
+input:
+  project_id: string
+  feedback:
+    source_agent: "spec" | "code" | "test" | "review"  # 反馈来源
+    target_stage: "plan" | "spec" | "code"             # 反馈目标阶段
+    feedback_code: string                               # 反馈编码（如 FB-SPEC-PLAN-01）
+    severity: "critical" | "warning" | "info"
+    category: string                                    # 问题类别
+    content: string                                     # 反馈内容
+    evidence:                                           # 证据
+      file_path: string | null
+      line_number: number | null
+      snippet: string | null
+    requires_revision: boolean                          # 是否需要修订
+    suggested_action: string | null                     # 建议的处理方式
+
+output:
+  feedback_id: string                 # 反馈记录 ID
+  recorded_at: datetime
+  target_notified: boolean            # 目标 Agent 是否被通知
+  revision_triggered: boolean         # 是否触发了修订流程
+  related_decisions: array            # 关联的决策 ID（可追溯）
+  status: "feedback_recorded"
+
+actions:
+  - 记录反馈到 .orchestra/feedback/{feedback_id}.json
+  - 关联到项目 timeline
+  - 查找并关联相关决策（便于追溯）
+  - 如果 requires_revision=true，标记目标阶段需要修订
+  - 如果 severity=critical，立即通知目标 Agent
+
+# 反馈编码格式
+feedback_code_format:
+  pattern: "FB-{SOURCE}-{TARGET}-{SEQ}"
+  examples:
+    - "FB-SPEC-PLAN-01": "需求矛盾"
+    - "FB-SPEC-PLAN-02": "需求不完整"
+    - "FB-CODE-SPEC-01": "契约不可实现"
+    - "FB-TEST-CODE-01": "功能缺失"
+```
+
+---
+
+### 接口 51: get_feedback_history 🆕
+
+**用途**: 获取反馈历史（用于分析和回顾）
+
+```yaml
+interface: get_feedback_history
+
+input:
+  project_id: string
+  filters:
+    target_stage: string | null       # 按目标阶段筛选
+    source_agent: string | null       # 按来源筛选
+    severity: string | null           # 按严重性筛选
+    status: "all" | "pending" | "resolved"  # 按状态筛选
+    from_date: string | null
+    to_date: string | null
+  limit: number                       # 默认 50
+
+output:
+  total: number
+  feedback_list:
+    - feedback_id: string
+      feedback_code: string
+      source_agent: string
+      target_stage: string
+      severity: string
+      content: string
+      status: "pending" | "resolved" | "dismissed"
+      resolution: string | null       # 解决方案
+      resolved_at: datetime | null
+  statistics:
+    total_critical: number
+    total_warning: number
+    by_stage:
+      plan: number
+      spec: number
+      code: number
+    resolution_rate: number           # 解决率
+```
+
+---
+
+### 接口 52: record_stage_retry 🆕
+
+**用途**: 记录阶段重试（失败后重试时调用）
+
+```yaml
+interface: record_stage_retry
+
+input:
+  project_id: string
+  retry_info:
+    stage: "plan" | "spec" | "code" | "test" | "review"
+    retry_number: number              # 第几次重试（从 1 开始）
+    trigger: "feedback" | "validation_fail" | "user_request" | "timeout"
+    trigger_feedback_id: string | null  # 如果是反馈触发，关联反馈 ID
+    previous_attempt_summary: string  # 上次尝试的摘要
+    changes_planned: array            # 本次重试计划的改变
+
+output:
+  retry_id: string
+  recorded_at: datetime
+  previous_attempts: number           # 之前的尝试次数
+  max_retries: number                 # 最大允许重试次数
+  remaining_retries: number           # 剩余重试次数
+  status: "retry_recorded" | "max_retries_exceeded"
+
+actions:
+  - 记录重试事件到 .orchestra/retries/{retry_id}.json
+  - 更新项目 timeline
+  - 如果达到最大重试次数，返回 max_retries_exceeded
+  - 关联触发反馈（如有）
+
+# 重试限制配置
+retry_limits:
+  plan: 3
+  spec: 3
+  code: 5
+  test: 10
+  review: 3
+```
+
+---
+
+### 反馈与重试铁律 🆕
+
+```yaml
+integrity:
+
+  DA-17:
+    name: "反馈必须有证据"
+    rule: "record_downstream_feedback 时必须提供 evidence"
+    检测方法:
+      步骤:
+        1: "检查 feedback 是否包含 evidence 字段"
+        2: "evidence 至少包含 content 或 file_path"
+        3: "无证据 = 反馈无效"
+      证据: "evidence 字段内容"
+    consequence: "无证据的反馈被标记为 unverified"
+
+  DA-18:
+    name: "重试必须记录原因"
+    rule: "每次重试必须记录 trigger 和 previous_attempt_summary"
+    检测方法:
+      步骤:
+        1: "检查 retry_info 是否包含 trigger"
+        2: "检查 previous_attempt_summary 是否非空"
+        3: "缺失 = 违规"
+      证据: "retry_info 完整性"
+    consequence: "重试无效，需补充信息"
+
+  DA-19:
+    name: "反馈必须追溯决策"
+    rule: "critical 级别的反馈必须关联到相关决策"
+    检测方法:
+      步骤:
+        1: "检查 severity=critical 的反馈"
+        2: "检查 related_decisions 是否为空"
+        3: "critical 反馈无关联决策 = 违规"
+      证据: "related_decisions 数组"
+    consequence: "需人工补充决策关联"
+
+  DA-20:
+    name: "重试次数不可超限"
+    rule: "超过最大重试次数必须人工介入"
+    检测方法:
+      步骤:
+        1: "检查 record_stage_retry 返回状态"
+        2: "如果 status=max_retries_exceeded"
+        3: "后续必须有人工介入记录"
+      证据: "人工介入记录"
+    consequence: "阻塞流程，等待皇上决策"
+```
+
+---
+
+## 十六、Layer 8: 场景管理接口详细定义
+
+> 解决场景确定时序问题：已有项目需要先扫描才能确定场景
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  场景确定时序                                                               │
+│  ══════════════                                                             │
+│                                                                             │
+│   新项目：                          已有项目：                              │
+│   ────────                          ──────────                              │
+│                                                                             │
+│   用户需求                          用户需求                                │
+│       │                                 │                                   │
+│       ▼                                 ▼                                   │
+│   init_project                     init_project                             │
+│   (scenario=new_project)           (scenario=null)  ← 延迟确定              │
+│       │                                 │                                   │
+│       ▼                                 ▼                                   │
+│   正常采访                          巡按御史扫描                              │
+│       │                                 │                                   │
+│       ▼                                 ▼                                   │
+│   完成                             scenario_suggestion                      │
+│                                         │                                   │
+│                                         ▼                                   │
+│                                    update_scenario_type  ← 确定场景         │
+│                                    (用户确认)                               │
+│                                         │                                   │
+│                                         ▼                                   │
+│                                    正常采访                                 │
+│                                         │                                   │
+│                                         ▼                                   │
+│                                    完成                                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 接口 53: update_scenario_type 🆕
+
+**用途**: 更新/确定项目场景类型
+
+```yaml
+interface: update_scenario_type
+
+input:
+  project_id: string
+  new_scenario_type: "new_project" | "iteration" | "batch_delivery" | "refactor"
+  trigger: "scan_suggestion" | "user_decision" | "interview_discovery" | "downstream_feedback"
+  trigger_detail:
+    # 如果是 scan_suggestion
+    scan_id: string | null           # 触发的扫描 ID
+    suggestion_confidence: number | null  # 建议的置信度
+    # 如果是 interview_discovery
+    discovery_round: number | null   # 在第几轮发现
+    discovery_reason: string | null  # 发现原因（如"功能超过10个"）
+  batch_info:                        # 仅 batch_delivery 需要
+    total_batches: number
+    current_batch: number
+    batch_scope: array
+  user_confirmed: boolean            # 是否已经用户确认
+
+output:
+  updated: boolean
+  previous_scenario: string | null   # 之前的场景（如果是变更）
+  new_scenario: string               # 新场景
+  change_record_id: string           # 变更记录 ID
+  timeline_updated: boolean          # 是否已更新 timeline
+  status: "scenario_updated" | "scenario_set" | "confirmation_required" | "invalid_transition"
+
+# 场景变更规则
+transition_rules:
+  allowed:
+    - from: null
+      to: ["new_project", "iteration", "batch_delivery", "refactor"]
+      note: "初始确定，无限制"
+
+    - from: "iteration"
+      to: ["batch_delivery"]
+      note: "迭代 → 分批（功能太多）"
+
+    - from: "new_project"
+      to: ["batch_delivery"]
+      note: "新项目 → 分批（功能太多）"
+
+  forbidden:
+    - from: "refactor"
+      to: ["new_project", "iteration"]
+      note: "重塑不能降级为迭代或新项目"
+
+    - from: "batch_delivery"
+      to: ["iteration", "new_project"]
+      note: "已分批不能合并回单批"
+
+  requires_confirmation:
+    - "任何场景变更（非初始设定）都需要 user_confirmed=true"
+
+actions:
+  - 验证场景变更是否允许
+  - 如果 user_confirmed=false 且是变更，返回 confirmation_required
+  - 更新 project.json 的 scenario_type
+  - 如果是 batch_delivery，初始化 batch_info
+  - 记录变更到 timeline
+  - 返回变更记录 ID
+```
+
+---
+
+### 接口 54: get_scenario_info 🆕
+
+**用途**: 获取当前项目的场景信息
+
+```yaml
+interface: get_scenario_info
+
+input:
+  project_id: string
+
+output:
+  scenario_type: string | null       # 当前场景类型（null = 未确定）
+  scenario_status: "confirmed" | "pending" | "changed"
+  batch_info: object | null          # 批次信息（如有）
+
+  # 场景历史
+  scenario_history:
+    - timestamp: datetime
+      from_scenario: string | null
+      to_scenario: string
+      trigger: string
+      confirmed_by: string
+
+  # 如果未确定，给出建议
+  suggestion:                        # 仅 scenario_type=null 时返回
+    recommended: string | null       # 推荐的场景
+    confidence: number | null        # 置信度
+    source: string | null            # 建议来源（如 "scan-xxx"）
+    awaiting_confirmation: boolean   # 是否等待用户确认
+
+  # 下游兼容性
+  downstream_compatible: boolean     # 当前场景是否可以传递给下游
+  blocking_issues: array | null      # 如果不兼容，阻塞原因
+```
+
+---
+
+### 场景管理铁律 🆕
+
+```yaml
+scenario_laws:
+
+  DA-21:
+    name: "场景必最终确定"
+    rule: "scenario_type=null 的项目，必须在 complete_stage 前确定场景"
+    检测方法:
+      步骤:
+        1: "检查 complete_stage 调用时的 scenario_type"
+        2: "如果仍为 null = 违规"
+      证据: "get_scenario_info 返回"
+    consequence: "阻塞 complete_stage，要求先确定场景"
+
+  DA-22:
+    name: "场景变更必确认"
+    rule: "场景变更（非初始设定）必须用户确认"
+    检测方法:
+      步骤:
+        1: "检查 update_scenario_type 的 trigger"
+        2: "如果 previous_scenario != null 且 user_confirmed=false"
+        3: "= 违规"
+      证据: "update_scenario_type 的 user_confirmed 字段"
+    consequence: "变更被拒绝，返回 confirmation_required"
+
+  DA-23:
+    name: "场景建议必采纳流程"
+    rule: "巡按御史的 scenario_suggestion 必须经过采纳流程（展示给用户、等待确认）"
+    检测方法:
+      步骤:
+        1: "检查扫描后是否展示了 scenario_suggestion"
+        2: "检查是否有用户确认记录"
+        3: "直接采用未确认 = 违规"
+      证据: "scenario_suggestion 展示记录 + 用户确认记录"
+    consequence: "场景设定无效，需重新确认"
+```
+
+---
+
+### 与巡按御史 scenario_suggestion 的对接流程
+
+```yaml
+scanner_scenario_integration:
+
+  # 扫描完成后的场景采纳流程
+  on_scan_complete:
+    step_1:
+      action: "巡按御史返回 scenario_suggestion"
+      data:
+        recommended: "refactor"
+        confidence: 0.85
+        evidence: [...]
+
+    step_2:
+      action: "Plan Agent 展示建议给用户"
+      script: |
+        皇上，微臣完成项目扫描。
+
+        基于扫描结果，微臣建议此项目按「{recommended}」场景处理。
+
+        **理由**：
+        {evidence_summary}
+
+        置信度：{confidence}%
+
+        请皇上确认：
+        1️⃣ 同意此建议
+        2️⃣ 选择其他场景：{alternatives}
+        3️⃣ 需要更多信息
+
+    step_3:
+      action: "用户确认后调用 update_scenario_type"
+      interface: "update_scenario_type"
+      params:
+        new_scenario_type: "{user_choice}"
+        trigger: "scan_suggestion"
+        trigger_detail:
+          scan_id: "{scan_id}"
+          suggestion_confidence: 0.85
+        user_confirmed: true
+
+    step_4:
+      action: "开始场景感知的采访"
+      note: "此时 requirement-template 可以获取正确的 scenario_type"
+```
+
+---
+
+## 十七、三 Skill 协作流程（Skill Collaboration）
+
+> 本节描述 requirement-template、dialogue-archivist、project-scanner 三个 Skill 在不同场景下的协作流程
+
+### 协作架构总览
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       Plan Agent (指挥中心)                              │
+│                              │                                           │
+│         ┌────────────────────┼────────────────────┐                     │
+│         ▼                    ▼                    ▼                     │
+│  ┌─────────────┐    ┌───────────────────┐   ┌─────────────────┐        │
+│  │ Skill 1     │    │ Skill 2           │   │ Skill 3         │        │
+│  │ requirement │◄──►│ dialogue-archivist│◄──►│ project-scanner│        │
+│  │ -template   │    │ (史官-中枢)        │   │ (巡按御史)         │        │
+│  └─────────────┘    └───────────────────┘   └─────────────────┘        │
+│        │                    ▲                       │                   │
+│        │                    │                       │                   │
+│        └────────────────────┴───────────────────────┘                   │
+│              数据流: 模板 ←→ 记录 ←→ 扫描                                │
+└─────────────────────────────────────────────────────────────────────────┘
+
+协作原则：
+- dialogue-archivist 是中枢，负责状态管理和记录
+- requirement-template 依赖 scenario_type 生成合适问题
+- project-scanner 提供 scenario_suggestion 作为场景判断依据
+```
+
+### 场景一：新项目 (new_project)
+
+```yaml
+new_project_flow:
+
+  phase_1_init:
+    step_1:
+      actor: "Plan Agent"
+      action: "用户表达新项目意图"
+      result: "识别为新项目场景"
+
+    step_2:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "init_project"
+      params:
+        scenario_type: "new_project"  # 新项目可直接确定
+        project_context: {...}
+      result: "project_id 生成，档案馆初始化"
+
+    step_3:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "register_stage"
+      params:
+        stage: "plan"
+        scenario_type: "new_project"
+      result: "Plan 阶段注册"
+
+  phase_2_interview:
+    step_4:
+      actor: "Skill 1 (requirement-template)"
+      interface: "get_round_structure"
+      params:
+        scenario_type: "new_project"
+        round: 1
+        mode: "standard"
+      result: "返回新项目第一轮采访结构（core_fields）"
+
+    step_5:
+      actor: "Plan Agent"
+      action: "根据模板进行采访"
+      loop: "每轮采访"
+      inner_calls:
+        - interface: "Skill 2.record"
+          when: "每次问答后"
+        - interface: "Skill 2.mark_decision"
+          when: "用户做决策时"
+        - interface: "Skill 2.end_round"
+          when: "轮次结束"
+
+    step_6:
+      actor: "Skill 1 (requirement-template)"
+      interface: "get_round_structure"
+      params:
+        round: 2
+      result: "返回第二轮结构（scope_boundary + risks）"
+
+    step_7:
+      note: "重复 step_5-6 直到采访完成"
+
+  phase_3_archive:
+    step_8:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "archive"
+      result: "生成 Plan 阶段存档"
+
+    step_9:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "complete_stage"
+      result: "Plan 阶段完成，触发下一阶段"
+```
+
+### 场景二：迭代开发 (iteration)
+
+```yaml
+iteration_flow:
+
+  phase_1_detect:
+    step_1:
+      actor: "Plan Agent"
+      action: "用户请求新功能/改进"
+      trigger: "on_existing_project_detected"
+
+    step_2:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "get_active_project"
+      result: "获取当前活跃项目"
+
+    step_3:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "init_project"
+      params:
+        scenario_type: null  # 延迟确定
+        continue_from: "{active_project_id}"
+      result: "迭代项目初始化，场景待定"
+
+  phase_2_scan:
+    step_4:
+      actor: "Skill 3 (project-scanner)"
+      interface: "scan_project"
+      params:
+        path: "{project_path}"
+        mode: "smart"
+      result:
+        scenario_suggestion:
+          recommended: "iteration"
+          confidence: 0.9
+          evidence: ["有 package.json", "已有测试文件", "存在 .git 历史"]
+
+    step_5:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "record_event"
+      params:
+        type: "project_scan"
+        data: "{scan_result}"
+      result: "扫描结果记录"
+
+  phase_3_scenario_confirm:
+    step_6:
+      actor: "Plan Agent"
+      action: "展示场景建议给用户"
+      script: |
+        皇上，微臣完成扫描。建议按「迭代开发」处理。
+        理由：{evidence}
+        请确认或选择其他场景。
+
+    step_7:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "update_scenario_type"
+      params:
+        new_scenario_type: "iteration"
+        trigger: "scan_suggestion"
+        user_confirmed: true
+      result: "场景确定为 iteration"
+
+  phase_4_interview:
+    step_8:
+      actor: "Skill 1 (requirement-template)"
+      interface: "get_round_structure"
+      params:
+        scenario_type: "iteration"  # 现在可获取正确场景
+        round: 1
+      result: "迭代专用结构（feature_scope + dependencies + regression_risks）"
+
+    step_9:
+      note: "采访流程同新项目，但使用迭代专用模板"
+
+  phase_5_archive:
+    step_10:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "archive"
+      params:
+        include_iteration_context: true
+      result: "生成迭代存档，关联历史版本"
+```
+
+### 场景三：批量交付 (batch_delivery)
+
+```yaml
+batch_delivery_flow:
+
+  phase_1_init:
+    step_1:
+      actor: "Skill 3 (project-scanner)"
+      result:
+        scenario_suggestion:
+          recommended: "batch_delivery"
+          evidence: ["大规模文件结构变更", "多模块并行"]
+
+    step_2:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "init_migration"
+      params:
+        strategy: "parallel_batches"
+        estimated_batches: 5
+      result: "迁移记录初始化"
+
+  phase_2_interview:
+    step_3:
+      actor: "Skill 1 (requirement-template)"
+      interface: "get_round_structure"
+      params:
+        scenario_type: "batch_delivery"
+        round: 1
+      result: "批量交付结构（batch_scope + dependencies_map + rollback_plan）"
+
+    step_4:
+      actor: "Skill 1 (requirement-template)"
+      interface: "get_batch_info_fields"
+      result: "批次专用字段（batch_sequence + checkpoint_strategy）"
+
+  phase_3_batch_execution:
+    step_5:
+      loop: "每个批次"
+      sequence:
+        - actor: "Skill 2 (dialogue-archivist)"
+          interface: "record_batch_start"
+          params:
+            batch_id: "batch_{n}"
+            scope: [...]
+
+        - actor: "Code Agent (执行)"
+          note: "批次代码变更"
+
+        - actor: "Skill 2 (dialogue-archivist)"
+          interface: "record_file_migration"
+          when: "文件移动/拆分时"
+
+        - actor: "Skill 2 (dialogue-archivist)"
+          interface: "record_batch_complete | record_batch_rollback"
+          when: "批次完成或失败"
+
+  phase_4_summary:
+    step_6:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "archive"
+      params:
+        include_migration_summary: true
+      result: "生成批量交付总结，含各批次状态"
+```
+
+### 场景四：重构 (refactor)
+
+```yaml
+refactor_flow:
+
+  phase_1_assess:
+    step_1:
+      actor: "Skill 3 (project-scanner)"
+      interface: "scan_project"
+      params:
+        deep_analysis: true
+      result:
+        scenario_suggestion:
+          recommended: "refactor"
+          confidence: 0.85
+          evidence: ["代码异味检测", "架构不一致", "技术债务"]
+        refactor_hints:
+          affected_areas: [...]
+          complexity_score: 7.2
+
+    step_2:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "update_scenario_type"
+      params:
+        new_scenario_type: "refactor"
+        user_confirmed: true
+      result: "确认重构场景"
+
+  phase_2_interview:
+    step_3:
+      actor: "Skill 1 (requirement-template)"
+      interface: "get_round_structure"
+      params:
+        scenario_type: "refactor"
+        round: 1
+      result: "重构结构（refactor_goals + constraints + preservation_requirements）"
+
+    step_4:
+      actor: "Skill 1 (requirement-template)"
+      interface: "get_batch_info_fields"
+      note: "重构通常需要分批进行"
+      result: "重构批次字段"
+
+  phase_3_plan:
+    step_5:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "mark_decision"
+      params:
+        type: "architecture_decision"
+        content: "重构策略选择"
+      result: "记录架构决策"
+
+    step_6:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "init_migration"
+      params:
+        strategy: "incremental_refactor"
+      result: "初始化重构迁移记录"
+
+  phase_4_execute:
+    note: "执行流程同 batch_delivery，但额外包含：
+           - 每次变更后验证行为保持
+           - 记录架构演进决策
+           - 回归测试检查点"
+```
+
+### 延迟场景确定流程
+
+```yaml
+deferred_scenario_flow:
+  description: "当无法在初始化时确定场景时的处理流程"
+
+  applicable_when:
+    - "现有项目但用途不明"
+    - "用户意图模糊"
+    - "需要扫描后才能判断"
+
+  sequence:
+    step_1:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "init_project"
+      params:
+        scenario_type: null
+      result: "项目初始化，场景待定"
+
+    step_2:
+      actor: "Skill 3 (project-scanner)"
+      interface: "scan_project"
+      result: "scenario_suggestion"
+
+    step_3:
+      actor: "Plan Agent"
+      action: "询问用户确认场景"
+
+    step_4:
+      actor: "Skill 2 (dialogue-archivist)"
+      interface: "update_scenario_type"
+      params:
+        trigger: "scan_suggestion"
+        user_confirmed: true
+      result: "场景确定"
+
+    step_5:
+      actor: "Skill 1 (requirement-template)"
+      interface: "get_pending_scenario_fields"
+      note: "获取因场景延迟而待补问的字段"
+      result: "补问字段列表"
+
+    step_6:
+      actor: "Plan Agent"
+      action: "补问缺失字段"
+      result: "采访数据完整"
+```
+
+### Skill 间数据流
+
+```yaml
+data_flow:
+
+  init_phase:
+    flow: "Plan Agent → Skill 2 → Skill 3 → Skill 2"
+    data:
+      - "project_context → init_project"
+      - "project_path → scan_project"
+      - "scan_result → record_event"
+      - "scenario_suggestion → update_scenario_type"
+
+  interview_phase:
+    flow: "Skill 1 ↔ Plan Agent ↔ Skill 2"
+    data:
+      - "scenario_type → get_round_structure → round_fields"
+      - "user_answer → record → stored"
+      - "decision → mark_decision → decision_log"
+
+  archive_phase:
+    flow: "Skill 2 → archives/"
+    data:
+      - "all_records → archive → stage_archive.yaml"
+      - "stage_complete → complete_stage → timeline_updated"
+
+  # 关键数据依赖
+  dependencies:
+    requirement_template:
+      requires: "scenario_type from dialogue-archivist"
+      fallback: "use deferred_scenario handling"
+
+    dialogue_archivist:
+      requires: "scenario_suggestion from project-scanner"
+      fallback: "user manual selection"
+
+    project_scanner:
+      requires: "project_path"
+      provides: "scenario_suggestion, project_structure"
+```
+
+### 协作铁律
+
+| 编号 | 铁律 | 检测方法 |
+|------|------|----------|
+| SC-01 | Skill 间调用必须经由 Plan Agent 协调 | 检查调用链是否有 Plan Agent |
+| SC-02 | scenario_type 延迟时，requirement-template 必须使用 deferred_scenario 逻辑 | 检查 scenario_type=null 时的处理 |
+| SC-03 | project-scanner 的 scenario_suggestion 必须记录到 dialogue-archivist | 检查 record_event 调用 |
+| SC-04 | 场景确定后必须通知所有依赖 Skill | 检查 update_scenario_type 后的数据传播 |
+
+---
+
+## 十八、被 Spec Agent 核心 Skills 调用说明
+
+```yaml
+# ════════════════════════════════════════════════════════════════════════════
+#  史官被哪些核心 Skills 调用，如何配合
+# ════════════════════════════════════════════════════════════════════════════
+
+called_by_core_skills:
+
+  # ═══════════════════════════════════════════════════════════════
+  # 将作监（module-planner）调用
+  # ═══════════════════════════════════════════════════════════════
+  module_planner:
+    调用场景: "模块规划过程记录"
+    调用接口:
+      - record_event: "记录规划事件（plan_modules 调用）"
+      - mark_decision: "记录模块划分决策"
+    传递数据:
+      - event_type: "module_planning_start | module_planning_complete"
+      - decision: "模块划分方案"
+    配合要点:
+      - "记录规划的输入（功能列表）和输出（模块清单）"
+      - "记录依赖分析结果"
+      - "规划方案需标记为决策点"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 典簿（spec-template）调用
+  # ═══════════════════════════════════════════════════════════════
+  spec_template:
+    调用场景: "模板选择记录"
+    调用接口:
+      - record_event: "记录模板选择（get_*_template 调用）"
+    传递数据:
+      - event_type: "template_selected"
+      - template_type: "api | schema | module | spec_report"
+      - template_variant: "REST | GraphQL | new | existing | refactor"
+    配合要点:
+      - "记录选择了哪个模板及原因"
+      - "如基于 scan_report 选择，记录依据"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 照磨（tech-validator）调用
+  # ═══════════════════════════════════════════════════════════════
+  tech_validator:
+    调用场景: "校验过程和结果记录"
+    调用接口:
+      - record_event: "记录校验事件"
+      - mark_decision: "记录校验后的修复决策"
+    传递数据:
+      - event_type: "validation_start | validation_pass | validation_fail"
+      - validation_report: "校验报告摘要"
+      - blockers: "阻断项列表"
+    配合要点:
+      - "校验失败必须记录 blockers"
+      - "修复后重新校验必须记录完整链条"
+      - "最终通过必须记录 overall: pass"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 契约守卫（contract-guardian）调用
+  # ═══════════════════════════════════════════════════════════════
+  contract_guardian:
+    调用场景: "契约快照和变更记录"
+    调用接口:
+      - archive_contract_snapshot: "存档契约快照"
+      - lock_contract: "标记契约锁定"
+      - archive_change_request: "存档变更请求"
+      - update_change_request_status: "更新变更状态"
+      - record_contract_violation: "记录契约违规"
+      - record_contract_rollback: "记录契约回滚"
+      - record_audit_log: "记录审计日志"
+    传递数据:
+      - snapshot: "契约快照内容"
+      - change_request: "变更请求详情"
+      - violation: "违规详情"
+    配合要点:
+      - "快照必须包含 hash 用于防篡改验证"
+      - "变更请求必须记录 requester、reason、status"
+      - "审计日志记录所有敏感操作"
+      - "⚠️ Layer 4 接口专为契约守卫设计"
+
+  # ═══════════════════════════════════════════════════════════════
+  # Layer 4 接口与契约守卫的对应关系
+  # ═══════════════════════════════════════════════════════════════
+  layer4_contract_mapping:
+    archive_contract_snapshot: "契约守卫 create_snapshot 后调用"
+    get_contract_snapshot: "契约守卫 get_snapshot 时调用"
+    list_contract_snapshots: "契约守卫 compare_snapshots 时调用"
+    lock_contract: "皇上确认后由契约守卫调用"
+    record_contract_violation: "契约守卫 detect_violations 发现违规后调用"
+    archive_change_request: "契约守卫 request_contract_change 后调用"
+    update_change_request_status: "契约守卫 approve/reject_contract_change 后调用"
+    record_contract_rollback: "契约守卫 rollback_contract 后调用"
+    record_audit_log: "契约守卫所有写操作后调用"
+```
+
+---
+
+## 十九、版本历史
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
+| v2.7 | 2026-01-31 | 🆕 添加"被 Spec Agent 核心 Skills 调用说明"章节：将作监/典簿/照磨/契约守卫如何调用史官、Layer 4 接口与契约守卫对应关系 |
+| v2.6 | 2026-01-31 | 🆕 项目生命周期闭环：新增 5 个 Layer 1 接口（接口 55-59: complete_project, pause_project, resume_project, abandon_project, list_projects）、新增铁律 DA-24~DA-25、项目状态完整流转（active↔paused→completed/abandoned） |
+| v2.5 | 2026-01-30 | 🆕 多 Agent 事件支持：(1) register_stage 支持 "test" 阶段；(2) record_event 新增 Code Agent 专用事件（phase_a/b_start/complete, function_complete, batch_checkpoint）、Test Agent 专用事件（phase_a/b_verify_start/pass/fail, contract_lock_request, test_report_generated）、Review Agent 专用事件（review_start/issue_found/approve/reject/conditional）；(3) record_event 增加 agent_context 字段 |
+| v2.4 | 2026-01-30 | 🆕 新增"三 Skill 协作流程"章节：四场景完整协作流程、延迟场景确定流程、Skill 间数据流、协作铁律 SC-01~SC-04 |
+| v2.3 | 2026-01-30 | 🆕 场景管理完善：(1) init_project 支持 scenario_type=null（延迟确定）；(2) 新增 Layer 8 场景管理接口（接口 53-54: update_scenario_type, get_scenario_info）；(3) 场景变更规则和对接流程；(4) 新增铁律 DA-21~DA-23 |
+| v2.2 | 2026-01-30 | 🆕 与 Plan Agent v2.6 对齐：(1) init_project/get_project_status/register_stage 添加 scenario_type 支持；(2) 新增 Layer 7 反馈与重试接口（接口 50-52）；(3) 扩展 record_event 事件类型（6个失败/重试相关）；(4) 新增铁律 DA-17~DA-20 |
+| v2.1 | 2026-01-28 | 🔧 BUG修复：switch_project 增加 user_confirmed/acknowledge_red_flags 参数、新增 validation 规则、处理 5 种边界情况；get_active_project 增加异常处理；mark_decision 增加推荐字段校验规则；DA-16 职责调整为"提供数据" |
+| v2.0 | 2026-01-28 | 🆕 新增：接口 48-49（switch_project、get_active_project）、mark_decision 推荐模式扩展、铁律 DA-14~DA-16、皇上显示 project_id 机制 |
 | v1.9 | 2026-01-25 | 新增预置技能包（冷启动方案）：通用错误解决、调试技巧、最佳实践、变通方案，共 55+ 个预置技能 |
 | v1.8 | 2026-01-24 | 新增：Layer 5 持续学习接口（8个）、铁律 DA-07~DA-12（6条）、技能生命周期、验证机制、通知机制 |
 | v1.7 | 2026-01-23 | 防虚报审查修复：6条规则改为铁律格式（DA-01~DA-06）、添加检测方法、违规后果、调用证据要求 |
@@ -2955,7 +4640,7 @@ integrity:
 | v1.5 | 2026-01-23 | 新增：接口 30-32 契约变更请求存档接口 |
 | v1.4 | 2026-01-23 | 新增：Layer 4 契约快照接口（5个）、与契约守卫对接 |
 | v1.3 | 2026-01-22 | 新增：Layer 3 迁移专用接口（7个）、支持重塑项目记录 |
-| v1.2 | 2026-01-22 | 新增 project_scan 事件类型、与钦天监对接、scans/ 目录 |
+| v1.2 | 2026-01-22 | 新增 project_scan 事件类型、与巡按御史对接、scans/ 目录 |
 | v1.1 | 2026-01-22 | 增加快速模式支持、协作生成记录 |
 | v1.0 | 2026-01-22 | 初始版本：17个接口、两层架构 |
 

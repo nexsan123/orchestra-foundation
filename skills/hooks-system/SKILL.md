@@ -14,7 +14,21 @@ description: |
 
 ---
 
-## 🎯 核心定位
+## 📌 目录
+
+1. [一、核心定位](#一核心定位)
+2. [二、Hook 类型定义](#二hook-类型定义)
+3. [三、永乐大典预置 Hooks](#三永乐大典预置-hooks)
+4. [四、配置格式](#四配置格式)
+5. [五、与其他组件对接](#五与其他组件对接)
+6. [六、铁律](#六铁律)
+7. [七、存档结构](#七存档结构)
+8. [八、Agent 深度集成（新增 v2.0）](#八agent-深度集成新增-v20)
+9. [九、版本历史](#九版本历史)
+
+---
+
+## 一、核心定位
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -55,7 +69,7 @@ description: |
 
 ---
 
-## 📚 Hook 类型定义
+## 二、Hook 类型定义
 
 ### 六种 Hook 类型
 
@@ -248,7 +262,7 @@ integration:
 
 ---
 
-## 🔧 永乐大典预置 Hooks
+## 三、永乐大典预置 Hooks
 
 ### 配置文件位置
 
@@ -406,7 +420,7 @@ preset_hooks:
 
 ---
 
-## 📝 配置格式
+## 四、配置格式
 
 ### hooks.json 结构
 
@@ -505,7 +519,7 @@ hook_scripts:
 
 ---
 
-## 🔗 与其他组件对接
+## 五、与其他组件对接
 
 ### 与史官对接
 
@@ -571,7 +585,7 @@ review_agent_integration:
 
 ---
 
-## 🔐 铁律
+## 六、铁律
 
 ```yaml
 integrity:
@@ -629,7 +643,7 @@ integrity:
 
 ---
 
-## 📂 存档结构
+## 七、存档结构
 
 ```
 .orchestra/
@@ -649,7 +663,7 @@ integrity:
 
 ---
 
-## 🤖 Agent 深度集成（新增 v2.0）
+## 八、Agent 深度集成（新增 v2.0）
 
 ### Agent 生命周期钩子架构
 
@@ -1442,7 +1456,7 @@ agent_hook_laws:
   HK-05:
     name: "Agent 入口必初始化"
     rule: "OnEnter 钩子必须成功执行，Agent 才能开始工作"
-    违反: "跳过 OnEnter 直接开始工作"
+    violation: "跳过 OnEnter 直接开始工作"
     consequence: "上下文缺失，可能产生错误输出"
     检测方法:
       步骤:
@@ -1454,7 +1468,7 @@ agent_hook_laws:
   HK-06:
     name: "Agent 出口必交接"
     rule: "OnExit 钩子必须验证交付物完整后才能切换 Agent"
-    违反: "未验证交付物就切换"
+    violation: "未验证交付物就切换"
     consequence: "交付物不完整，下游 Agent 无法工作"
     检测方法:
       步骤:
@@ -1467,7 +1481,7 @@ agent_hook_laws:
   HK-07:
     name: "确认钩子必等待"
     rule: "OnConfirm 钩子必须等待用户确认，不可自动跳过"
-    违反: "自动确认用户应该审批的内容"
+    violation: "自动确认用户应该审批的内容"
     consequence: "用户不知情，可能做出错误决策"
     检测方法:
       步骤:
@@ -1479,7 +1493,7 @@ agent_hook_laws:
   HK-08:
     name: "契约钩子必锁定"
     rule: "OnContract 钩子执行后，契约必须生成版本并锁定"
-    违反: "契约生成后未版本化"
+    violation: "契约生成后未版本化"
     consequence: "契约可能被篡改"
     检测方法:
       步骤:
@@ -1491,7 +1505,7 @@ agent_hook_laws:
   HK-09:
     name: "提交钩子必验证"
     rule: "OnSubmit 钩子必须运行验证（lint、test），验证通过才能提交"
-    违反: "跳过验证直接提交"
+    violation: "跳过验证直接提交"
     consequence: "提交低质量代码"
     检测方法:
       步骤:
@@ -1504,7 +1518,7 @@ agent_hook_laws:
   HK-10:
     name: "问题钩子必记录"
     rule: "OnIssue 钩子触发时必须记录问题详情"
-    违反: "发现问题但未记录"
+    violation: "发现问题但未记录"
     consequence: "问题可能被遗忘"
     检测方法:
       步骤:
@@ -1516,7 +1530,7 @@ agent_hook_laws:
   HK-11:
     name: "切换钩子必完整"
     rule: "AgentSwitch 的 Pre/On/Post 三阶段必须完整执行"
-    违反: "只执行部分切换钩子"
+    violation: "只执行部分切换钩子"
     consequence: "状态不一致，数据丢失"
     检测方法:
       步骤:
@@ -1528,7 +1542,7 @@ agent_hook_laws:
   HK-12:
     name: "阶段钩子必配对"
     rule: "PhaseStart 必须有对应的 PhaseEnd，不可只开始不结束"
-    违反: "阶段开始后未正常结束"
+    violation: "阶段开始后未正常结束"
     consequence: "阶段状态混乱"
     检测方法:
       步骤:
@@ -1662,7 +1676,7 @@ preset_agent_hooks:
 
 ---
 
-## 📋 版本历史
+## 九、版本历史
 
 | 版本 | 日期 | 变更 |
 |------|------|------|

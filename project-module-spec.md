@@ -269,7 +269,7 @@ const orderService = new OrderService();
 const orders = await orderService.getList();
 ```
 
-## 更新历史
+## 版本历史
 
 | 日期 | 版本 | 变更 |
 |------|------|------|

@@ -405,7 +405,7 @@ file_size:
       - "常量配置 → constants.ts"
       - "验证规则 → validators.ts"
 
-  检测: "钦天监 scan_code_quality_v2()"
+  检测: "巡按御史 scan_code_quality_v2()"
 ```
 
 ### 3.2 函数规范
@@ -496,7 +496,7 @@ function_standards:
           return STATUS_TEXT[code] ?? 'unknown';
         }
 
-  检测: "钦天监 scan_code_quality_v2()"
+  检测: "巡按御史 scan_code_quality_v2()"
 ```
 
 ### 3.3 命名规范
@@ -746,14 +746,14 @@ checklist:
 
 ---
 
-## 七、与钦天监的关系
+## 七、与巡按御史的关系
 
 ```yaml
 scanner_integration:
 
   description: |
-    钦天监的 scan_code_quality_v2() 接口依据本文档规则进行检测。
-    Code Agent 调用钦天监扫描时，会检查代码是否符合本规范。
+    巡按御史的 scan_code_quality_v2() 接口依据本文档规则进行检测。
+    Code Agent 调用巡按御史扫描时，会检查代码是否符合本规范。
 
   检测项对应:
     文件大小: "三、3.1 文件大小限制"
@@ -762,7 +762,7 @@ scanner_integration:
     命名规范: "三、3.3 命名规范"
 
   调用方式: |
-    # Code Agent 调用钦天监
+    # Code Agent 调用巡按御史
     call project-scanner.scan_code_quality_v2({
       path: "项目路径",
       rules: "coder-standards"  # 引用本规范
